@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test keyboard</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test keyboard</h1>
+
+<script>
+window.addEventListener('keydown', (event) => {
+  keyboard._press(event);
+  for (const k of Object.getOwnPropertyNames(keys)) {
+    let v = keys[k];
+    if (keyboard[v]) {
+      console.log(`keys.${ k } pressed`);
+    }
+  }
+});
+window.addEventListener('keyup', (event) => {
+  for (const k of Object.getOwnPropertyNames(keys)) {
+    let v = keys[k];
+    if (keyboard[v]) {
+      console.log(`keys.${ k } released`);
+    }
+  }
+  keyboard._release(event);
+});
+
+function test_mouse() {
+  test.assertTrue(mouse.LEFT > 0);
+  test.assertTrue(mouse.RIGHT > 0);
+  test.assertTrue(mouse.MIDDLE > 0);
+  test.assertTrue(mouse.WHEEL_UP > 0);
+  test.assertTrue(mouse.WHEEL_DOWN > 0);
+
+  test.assertEqual(mouse.LEFT & mouse.RIGHT, 0);
+  test.assertEqual(mouse.LEFT & mouse.MIDDLE, 0);
+  test.assertEqual(mouse.LEFT & mouse.WHEEL_UP, 0);
+  test.assertEqual(mouse.LEFT & mouse.WHEEL_DOWN, 0);
+  test.assertEqual(mouse.RIGHT & mouse.MIDDLE, 0);
+  test.assertEqual(mouse.RIGHT & mouse.WHEEL_UP, 0);
+  test.assertEqual(mouse.RIGHT & mouse.WHEEL_DOWN, 0);
+  test.assertEqual(mouse.MIDDLE & mouse.WHEEL_UP, 0);
+  test.assertEqual(mouse.MIDDLE & mouse.WHEEL_DOWN, 0);
+  test.assertEqual(mouse.WHEEL_UP & mouse.WHEEL_DOWN, 0);
+
+  test.assertEqual(mouse.LEFT | mouse.RIGHT, 3);
+  test.assertEqual(mouse.LEFT | mouse.MIDDLE, 5);
+  test.assertEqual(mouse.LEFT | mouse.RIGHT | mouse.MIDDLE, 7);
+}
+
+function test_keys() {
+  const allKeys = Object.getOwnPropertyNames(keys);
+  for (const k of allKeys) {
+    let v = keys[k];
+    test.assertEqual(typeof v, 'string');
+    test.assertTrue(v.length > 0);
+    test.assertEqual(keyboard._lookup({code: v}), v);
+
+    // Test no key is pressed
+    for (const k2 of allKeys) {
+      let v2 = keys[k2];
+      test.assertFalse(keyboard[v2]);
+    }
+
+    // Test no key except the current key is pressed
+    keyboard._press({code: v});
+    for (const k2 of allKeys) {
+      let v2 = keys[k2];
+      if (v2 === v) {
+        test.assertTrue(keyboard[v2]);
+      }
+      else {
+        test.assertFalse(keyboard[v2]);
+      }
+    }
+    keyboard._release({code: v});
+
+    // Test no key is pressed
+    for (const k2 of allKeys) {
+      let v2 = keys[k2];
+      test.assertFalse(keyboard[v2]);
+    }
+
+    if (v.length === 1) {
+      keyboard._press({key: v});
+      test.assertTrue(keyboard[v]);
+      keyboard._release({key: v});
+    }
+  }
+}
+
+function test_keymods() {
+  test.assertTrue(keymods.LSHIFT > 0);
+  test.assertTrue(keymods.RSHIFT > 0);
+  test.assertTrue(keymods.SHIFT > 0);
+  test.assertTrue(keymods.LCTRL > 0);
+  test.assertTrue(keymods.RCTRL > 0);
+  test.assertTrue(keymods.CTRL > 0);
+  test.assertTrue(keymods.LALT > 0);
+  test.assertTrue(keymods.RALT > 0);
+  test.assertTrue(keymods.ALT > 0);
+
+  test.assertEqual(keymods.LSHIFT & keymods.RSHIFT, 0);
+  test.assertEqual(keymods.LSHIFT & keymods.SHIFT, 0);
+  test.assertEqual(keymods.LSHIFT & keymods.LCTRL, 0);
+  test.assertEqual(keymods.LSHIFT & keymods.RCTRL, 0);
+  test.assertEqual(keymods.LSHIFT & keymods.CTRL, 0);
+  test.assertEqual(keymods.LSHIFT & keymods.LALT, 0);
+  test.assertEqual(keymods.LSHIFT & keymods.RALT, 0);
+  test.assertEqual(keymods.LSHIFT & keymods.ALT, 0);
+  test.assertEqual(keymods.RSHIFT & keymods.SHIFT, 0);
+  test.assertEqual(keymods.RSHIFT & keymods.LCTRL, 0);
+  test.assertEqual(keymods.RSHIFT & keymods.RCTRL, 0);
+  test.assertEqual(keymods.RSHIFT & keymods.CTRL, 0);
+  test.assertEqual(keymods.RSHIFT & keymods.LALT, 0);
+  test.assertEqual(keymods.RSHIFT & keymods.RALT, 0);
+  test.assertEqual(keymods.RSHIFT & keymods.ALT, 0);
+  test.assertEqual(keymods.SHIFT & keymods.LCTRL, 0);
+  test.assertEqual(keymods.SHIFT & keymods.RCTRL, 0);
+  test.assertEqual(keymods.SHIFT & keymods.CTRL, 0);
+  test.assertEqual(keymods.SHIFT & keymods.LALT, 0);
+  test.assertEqual(keymods.SHIFT & keymods.RALT, 0);
+  test.assertEqual(keymods.SHIFT & keymods.ALT, 0);
+  test.assertEqual(keymods.LCTRL & keymods.RCTRL, 0);
+  test.assertEqual(keymods.LCTRL & keymods.CTRL, 0);
+  test.assertEqual(keymods.LCTRL & keymods.LALT, 0);
+  test.assertEqual(keymods.LCTRL & keymods.RALT, 0);
+  test.assertEqual(keymods.LCTRL & keymods.ALT, 0);
+  test.assertEqual(keymods.RCTRL & keymods.CTRL, 0);
+  test.assertEqual(keymods.RCTRL & keymods.LALT, 0);
+  test.assertEqual(keymods.RCTRL & keymods.RALT, 0);
+  test.assertEqual(keymods.RCTRL & keymods.ALT, 0);
+  test.assertEqual(keymods.CTRL & keymods.LALT, 0);
+  test.assertEqual(keymods.CTRL & keymods.RALT, 0);
+  test.assertEqual(keymods.CTRL & keymods.ALT, 0);
+  test.assertEqual(keymods.LALT & keymods.RALT, 0);
+  test.assertEqual(keymods.LALT & keymods.ALT, 0);
+  test.assertEqual(keymods.RALT & keymods.ALT, 0);
+
+  test.assertEqual(keymods.LSHIFT | keymods.SHIFT, 5);
+  test.assertEqual(keymods.RSHIFT | keymods.SHIFT, 6);
+  test.assertEqual(keymods.LCTRL | keymods.CTRL, 40);
+  test.assertEqual(keymods.RCTRL | keymods.CTRL, 48);
+  test.assertEqual(keymods.LALT | keymods.ALT, 320);
+  test.assertEqual(keymods.RALT | keymods.ALT, 384);
+}
+
+function test_bitmask() {
+  for (let [key, expected] of [
+    [keys.LSHIFT, 5],
+    [keys.RSHIFT, 6],
+    [keys.LCTRL, 40],
+    [keys.RCTRL, 48],
+    [keys.LALT, 320],
+    [keys.RALT, 384],
+    [keys.LMETA, 2560],
+    [keys.RMETA, 3072],
+    [keys.MODE, 16384]]) {
+    test.assertEqual(keyboard.bitmask, 0);
+    keyboard._press({code: key});
+    test.assertEqual(keyboard.bitmask, expected);
+    keyboard._release({code: key});
+    test.assertEqual(keyboard.bitmask, 0);
+  }
+}
+
+function test_press() {
+  test.assertFalse(keyboard[keys.A]);
+  test.assertFalse(keyboard[keys.Q]);
+  test.assertFalse(keyboard[keys.RIGHT]);
+  keyboard._press({code: keys.A});
+  keyboard._press({code: keys.RIGHT});
+  test.assertTrue(keyboard[keys.A]);
+  test.assertFalse(keyboard[keys.Q]);
+  test.assertTrue(keyboard[keys.RIGHT]);
+
+  keyboard._release({code: keys.A});
+  keyboard._release({code: keys.RIGHT});
+  test.assertFalse(keyboard[keys.A]);
+  test.assertFalse(keyboard[keys.Q]);
+  test.assertFalse(keyboard[keys.RIGHT]);
+}
+
+function test_tricky() {
+  test.assertFalse(keyboard[keys.AT]);
+  test.assertFalse(keyboard[keys.K_2]);
+  test.assertFalse(keyboard[keys.W]);
+  keyboard._press({code: keys.K_2, key: keys.AT});
+  test.assertTrue(keyboard[keys.AT]);
+  test.assertTrue(keyboard[keys.K_2]);
+  test.assertFalse(keyboard[keys.W]);
+
+  keyboard._release({code: keys.K_2, key: keys.AT});
+  test.assertFalse(keyboard[keys.AT]);
+  test.assertFalse(keyboard[keys.K_2]);
+  test.assertFalse(keyboard[keys.W]);
+}
+
+test.main();
+</script>
+</body>
+
+</html>

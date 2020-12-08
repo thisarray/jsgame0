@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test event dispatch</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+canvas {
+  border: 1px solid black;
+}
+dt {
+  font-weight: bold;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test event dispatch</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+<button type="button" id="reset">Reset</button>
+<button type="button" id="pause">Pause</button>
+</section>
+
+<dl>
+  <dt>on_key_down</dt>
+  <dd id="keydown">None</dd>
+
+  <dt>on_key_up</dt>
+  <dd id="keyup">None</dd>
+
+  <dt>on_mouse_down</dt>
+  <dd id="mousedown">None</dd>
+
+  <dt>on_mouse_up</dt>
+  <dd id="mouseup">None</dd>
+
+  <dt>on_mouse_move</dt>
+  <dd id="mousemove">None</dd>
+</dl>
+
+<script>
+const keydown = document.querySelector('#keydown');
+const keyup = document.querySelector('#keyup');
+const mousedown = document.querySelector('#mousedown');
+const mouseup = document.querySelector('#mouseup');
+const mousemove = document.querySelector('#mousemove');
+
+var WIDTH, HEIGHT;
+
+function reset() {
+  WIDTH = 200;
+  HEIGHT = 100;
+}
+
+function on_key_down(key, mask) {
+  for (const k of Object.getOwnPropertyNames(keys)) {
+    let v = keys[k];
+    if (v === key) {
+      keydown.textContent = `keys.${ k } pressed`;
+    }
+  }
+}
+
+function on_key_up(key, mask) {
+  for (const k of Object.getOwnPropertyNames(keys)) {
+    let v = keys[k];
+    if (v === key) {
+      keyup.textContent = `keys.${ k } released`;
+    }
+  }
+}
+
+function on_mouse_down(pos, buttons) {
+  if ((buttons & mouse.LEFT) > 0) {
+    mousedown.textContent = `Mouse LEFT down @ (${ pos[0] }, ${ pos[1] })`;
+    screen.draw.filled_circle(pos, 5, 'red');
+  }
+  else if ((buttons & mouse.MIDDLE) > 0) {
+    mousedown.textContent = `Mouse MIDDLE down @ (${ pos[0] }, ${ pos[1] })`;
+    screen.draw.filled_circle(pos, 5, 'green');
+  }
+  else if ((buttons & mouse.RIGHT) > 0) {
+    mousedown.textContent = `Mouse RIGHT down @ (${ pos[0] }, ${ pos[1] })`;
+    screen.draw.filled_circle(pos, 5, 'blue');
+  }
+}
+
+function on_mouse_up(pos, buttons) {
+  mouseup.textContent = `Mouse up @ (${ pos[0] }, ${ pos[1] })`;
+}
+
+function on_mouse_move(pos, delta, buttons) {
+  mousemove.textContent = `Mouse move (${ delta[0] }, ${ delta[1] }) @ (${ pos[0] }, ${ pos[1] })`;
+}
+
+window.addEventListener('load', (event) => {
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>

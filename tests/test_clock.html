@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test clock</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test clock</h1>
+
+<script>
+function one() {
+  console.log('1 second later');
+  clock.unschedule(ten);
+}
+
+function five() {
+  console.log('5 seconds');
+}
+
+function ten() {
+  console.log('10 seconds have passed');
+  clock.schedule(one, 1);
+}
+
+function done() {
+  console.log('all done');
+}
+
+clock.schedule_unique(five, 5);
+clock.schedule_interval(ten, 10);
+clock.schedule(done, 15);
+</script>
+</body>
+
+</html>

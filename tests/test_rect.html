@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test the Rect class</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test the Rect class</h1>
+
+<script>
+function test_construction_xy() {
+  let r = new Rect(1, 2, 3, 4);
+  test.assertEqual(1, r.left);
+  test.assertEqual(2, r.top);
+  test.assertEqual(3, r.width);
+  test.assertEqual(4, r.height);
+}
+
+function test_construction_topleft() {
+  for (let r of [
+    new Rect([1, 2], [3, 4]),
+    new Rect({x: 1, y: 2}, [3, 4]),
+    new Rect([1, 2], {width: 3, height: 4}),
+    new Rect({x: 1, y: 2}, {width: 3, height: 4})]) {
+    test.assertEqual(1, r.left);
+    test.assertEqual(2, r.top);
+    test.assertEqual(3, r.width);
+    test.assertEqual(4, r.height);
+  }
+}
+
+function test_construction_array() {
+  let r = new Rect([1, 2, 3, 4]);
+  test.assertEqual(1, r.left);
+  test.assertEqual(2, r.top);
+  test.assertEqual(3, r.width);
+  test.assertEqual(4, r.height);
+}
+
+function test_construction_object() {
+  let r = new Rect({x: 1, y: 2, width: 3, height: 4});
+  test.assertEqual(1, r.left);
+  test.assertEqual(2, r.top);
+  test.assertEqual(3, r.width);
+  test.assertEqual(4, r.height);
+}
+
+function test_construction_rect() {
+  let r = new Rect(1, 2, 3, 4),
+      r2 = new Rect(r);
+  test.assertEqual(1, r2.left);
+  test.assertEqual(2, r2.top);
+  test.assertEqual(3, r2.width);
+  test.assertEqual(4, r2.height);
+}
+
+function test_rect() {
+  let r;
+  try {
+    r = new Rect();
+    console.assert(false, 'Error not raised.');
+  }
+  catch (error) {
+    test.assertTrue(error instanceof Error);
+  }
+  try {
+    r = new Rect(42);
+    console.assert(false, 'Error not raised.');
+  }
+  catch (error) {
+    test.assertTrue(error instanceof Error);
+  }
+  try {
+    r = new Rect(4, 2);
+    console.assert(false, 'Error not raised.');
+  }
+  catch (error) {
+    test.assertTrue(error instanceof Error);
+  }
+}
+
+function test_toString() {
+  let r = new Rect(1, 2, 3, 4);
+  test.assertEqual(r.toString(), '{x: 1, y: 2, width: 3, height: 4}');
+}
+
+function test_calculated_attributes() {
+  let r = new Rect(1, 2, 3, 4);
+  test.assertEqual(r.left + r.width, r.right);
+  test.assertEqual(r.top + r.height, r.bottom);
+  test.assertEqual([r.width, r.height], r.size);
+  test.assertEqual([r.left, r.top], r.topleft);
+  test.assertEqual([r.right, r.top], r.topright);
+  test.assertEqual([r.left, r.bottom], r.bottomleft);
+  test.assertEqual([r.right, r.bottom], r.bottomright);
+
+  let midx = r.left + Math.floor(r.width / 2),
+      midy = r.top + Math.floor(r.height / 2);
+
+  test.assertEqual(midx, r.centerx);
+  test.assertEqual(midy, r.centery);
+  test.assertEqual([r.centerx, r.centery], r.center);
+  test.assertEqual([r.centerx, r.top], r.midtop);
+  test.assertEqual([r.centerx, r.bottom], r.midbottom);
+  test.assertEqual([r.left, r.centery], r.midleft);
+  test.assertEqual([r.right, r.centery], r.midright);
+}
+
+function test_normalize() {
+  let r = new Rect(1, 2, -3, -6),
+      r2 = new Rect(r);
+  r2.normalize();
+  test.assertTrue(r2.width >= 0);
+  test.assertTrue(r2.height >= 0);
+  test.assertEqual([Math.abs(r.width), Math.abs(r.height)], r2.size);
+  test.assertEqual([-2, -4], r2.topleft);
+}
+
+/*
+ * Changing the left attribute moves the rect and does not change the rect's width
+ */
+function test_left() {
+  let r = new Rect(1, 2, 3, 4),
+      new_left = 10;
+
+  r.left = new_left;
+  test.assertEqual(new_left, r.left);
+  test.assertEqual(new Rect(new_left, 2, 3, 4), r);
+}
+
+/*
+ * Changing the right attribute moves the rect and does not change the rect's width
+ */
+function test_right() {
+  let r = new Rect(1, 2, 3, 4),
+      new_right = r.right + 20,
+      expected_left = r.left + 20,
+      old_width = r.width;
+
+  r.right = new_right;
+  test.assertEqual(new_right, r.right);
+  test.assertEqual(expected_left, r.left);
+  test.assertEqual(old_width, r.width);
+}
+
+/*
+ * Changing the top attribute moves the rect and does not change the rect's width
+ */
+function test_top() {
+  let r = new Rect(1, 2, 3, 4),
+      new_top = 10;
+
+  r.top = new_top;
+  test.assertEqual(new Rect(1, new_top, 3, 4), r);
+  test.assertEqual(new_top, r.top);
+}
+
+/*
+ * Changing the bottom attribute moves the rect and does not change the rect's height
+ */
+function test_bottom() {
+  let r = new Rect(1, 2, 3, 4),
+      new_bottom = r.bottom + 20,
+      expected_top = r.top + 20,
+      old_height = r.height;
+
+  r.bottom = new_bottom;
+  test.assertEqual(new_bottom, r.bottom);
+  test.assertEqual(expected_top, r.top);
+  test.assertEqual(old_height, r.height);
+}
+
+/*
+ * Changing the centerx attribute moves the rect and does not change the rect's width
+ */
+function test_centerx() {
+  let r = new Rect(1, 2, 3, 4),
+      new_centerx = r.centerx + 20,
+      expected_left = r.left + 20,
+      old_width = r.width;
+
+  r.centerx = new_centerx;
+  test.assertEqual(new_centerx, r.centerx);
+  test.assertEqual(expected_left, r.left);
+  test.assertEqual(old_width, r.width);
+}
+
+/*
+ * Changing the centery attribute moves the rect and does not change the rect's height
+ */
+function test_centery() {
+  let r = new Rect(1, 2, 3, 4),
+      new_centery = r.centery + 20,
+      expected_top = r.top + 20,
+      old_height = r.height;
+
+  r.centery = new_centery;
+  test.assertEqual(new_centery, r.centery);
+  test.assertEqual(expected_top, r.top);
+  test.assertEqual(old_height, r.height);
+}
+
+/*
+ * Changing the topleft attribute moves the rect and does not change the rect's size
+ */
+function test_topleft() {
+  let r = new Rect(1, 2, 3, 4),
+      new_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.topleft = new_topleft;
+  test.assertEqual(new_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the bottomleft attribute moves the rect and does not change the rect's size
+ */
+function test_bottomleft() {
+  let r = new Rect(1, 2, 3, 4),
+      new_bottomleft = [r.left + 20, r.bottom + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.bottomleft = new_bottomleft;
+  test.assertEqual(new_bottomleft, r.bottomleft);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the topright attribute moves the rect and does not change the rect's size
+ */
+function test_topright() {
+  let r = new Rect(1, 2, 3, 4),
+      new_topright = [r.right + 20, r.top + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.topright = new_topright;
+  test.assertEqual(new_topright, r.topright);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the bottomright attribute moves the rect and does not change the rect's size
+ */
+function test_bottomright() {
+  let r = new Rect(1, 2, 3, 4),
+      new_bottomright = [r.right + 20, r.bottom + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.bottomright = new_bottomright;
+  test.assertEqual(new_bottomright, r.bottomright);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the center attribute moves the rect and does not change the rect's size
+ */
+function test_center() {
+  let r = new Rect(1, 2, 3, 4),
+      new_center = [r.centerx + 20, r.centery + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.center = new_center;
+  test.assertEqual(new_center, r.center);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the midleft attribute moves the rect and does not change the rect's size
+ */
+function test_midleft() {
+  let r = new Rect(1, 2, 3, 4),
+      new_midleft = [r.left + 20, r.centery + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.midleft = new_midleft;
+  test.assertEqual(new_midleft, r.midleft);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the midright attribute moves the rect and does not change the rect's size
+ */
+function test_midright() {
+  let r = new Rect(1, 2, 3, 4),
+      new_midright = [r.right + 20, r.centery + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.midright = new_midright;
+  test.assertEqual(new_midright, r.midright);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the midtop attribute moves the rect and does not change the rect's size
+ */
+function test_midtop() {
+  let r = new Rect(1, 2, 3, 4),
+      new_midtop = [r.centerx + 20, r.top + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.midtop = new_midtop;
+  test.assertEqual(new_midtop, r.midtop);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the midbottom attribute moves the rect and does not change the rect's size
+ */
+function test_midbottom() {
+  let r = new Rect(1, 2, 3, 4),
+      new_midbottom = [r.centerx + 20, r.bottom + 30],
+      expected_topleft = [r.left + 20, r.top + 30],
+      old_size = r.size;
+
+  r.midbottom = new_midbottom;
+  test.assertEqual(new_midbottom, r.midbottom);
+  test.assertEqual(expected_topleft, r.topleft);
+  test.assertEqual(old_size, r.size);
+}
+
+/*
+ * Changing the width resizes the rect from the top-left corner
+ */
+function test_width() {
+  let r = new Rect(1, 2, 3, 4),
+      new_width = 10,
+      old_topleft = r.topleft,
+      old_height = r.height;
+
+  r.width = new_width;
+  test.assertEqual(new_width, r.width);
+  test.assertEqual(old_height, r.height);
+  test.assertEqual(old_topleft, r.topleft);
+}
+
+/*
+ * Changing the height resizes the rect from the top-left corner
+ */
+function test_height() {
+  let r = new Rect(1, 2, 3, 4),
+      new_height = 10,
+      old_topleft = r.topleft,
+      old_width = r.width;
+
+  r.height = new_height;
+  test.assertEqual(new_height, r.height);
+  test.assertEqual(old_width, r.width);
+  test.assertEqual(old_topleft, r.topleft);
+}
+
+/*
+ * Changing the size resizes the rect from the top-left corner
+ */
+function test_size() {
+  let r = new Rect(1, 2, 3, 4),
+      new_size = [10, 20],
+      old_topleft = r.topleft;
+
+  r.size = new_size;
+  test.assertEqual(new_size, r.size);
+  test.assertEqual(old_topleft, r.topleft);
+}
+
+function test_contains() {
+  let r = new Rect(1, 2, 3, 4);
+
+  test.assertTrue(r.contains(new Rect(2, 3, 1, 1)),
+                  "r does not contain Rect(2,3,1,1)");
+  test.assertTrue(r.contains(new Rect(r)),
+                  "r does not contain the same rect as itself");
+  test.assertTrue(r.contains(new Rect(2, 3, 0, 0)),
+                  "r does not contain an empty rect within its bounds");
+  test.assertFalse(r.contains(new Rect(0, 0, 1, 2)),
+                   "r contains Rect(0,0,1,2)");
+  test.assertFalse(r.contains(new Rect(4, 6, 1, 1)),
+                   "r contains Rect(4,6,1,1)");
+  test.assertFalse(r.contains(new Rect(4, 6, 0, 0)),
+                   "r contains Rect(4,6,0,0)");
+}
+
+function test_collidepoint() {
+  let r = new Rect(1, 2, 3, 4);
+
+  test.assertTrue(r.collidepoint(r.left, r.top),
+                  "r does not collide with point (left,top)");
+  test.assertFalse(r.collidepoint(r.left - 1, r.top),
+                   "r collides with point (left-1,top)");
+  test.assertFalse(r.collidepoint(r.left, r.top - 1),
+                   "r collides with point (left,top-1)");
+  test.assertFalse(r.collidepoint(r.left - 1, r.top - 1),
+                   "r collides with point (left-1,top-1)");
+
+  test.assertTrue(r.collidepoint(r.right - 1, r.bottom - 1),
+                  "r does not collide with point (right-1,bottom-1)");
+  test.assertFalse(r.collidepoint(r.right, r.bottom),
+                   "r collides with point (right,bottom)");
+  test.assertFalse(r.collidepoint(r.right - 1, r.bottom),
+                   "r collides with point (right-1,bottom)");
+  test.assertFalse(r.collidepoint(r.right, r.bottom - 1),
+                   "r collides with point (right,bottom-1)");
+}
+
+function test_collidepoint_arguments() {
+  let r = new Rect(1, 2, 3, 4);
+
+  test.assertFalse(r.collidepoint());
+  test.assertFalse(r.collidepoint(r.left));
+  test.assertTrue(r.collidepoint([r.left, r.top]));
+  test.assertTrue(r.collidepoint({x: r.left, y: r.top}));
+}
+
+/*
+ * The inflate method inflates around the center of the rectangle
+ */
+function test_inflate__larger() {
+  let r = new Rect(2, 4, 6, 8),
+      r2 = r.inflate(4, 6);
+
+  test.assertEqual(r.center, r2.center);
+  test.assertEqual(r.left - 2, r2.left);
+  test.assertEqual(r.top - 3, r2.top);
+  test.assertEqual(r.right + 2, r2.right);
+  test.assertEqual(r.bottom + 3, r2.bottom);
+  test.assertEqual(r.width + 4, r2.width);
+  test.assertEqual(r.height + 6, r2.height);
+}
+
+/*
+ * The inflate method inflates around the center of the rectangle
+ */
+function test_inflate__smaller() {
+  let r = new Rect(2, 4, 6, 8),
+      r2 = r.inflate(-4, -6);
+
+  test.assertEqual(r.center, r2.center);
+  test.assertEqual(r.left + 2, r2.left);
+  test.assertEqual(r.top + 3, r2.top);
+  test.assertEqual(r.right - 2, r2.right);
+  test.assertEqual(r.bottom - 3, r2.bottom);
+  test.assertEqual(r.width - 4, r2.width);
+  test.assertEqual(r.height - 6, r2.height);
+}
+
+/*
+ * The inflate_ip method inflates around the center of the rectangle
+ */
+function test_inflate_ip__larger() {
+  let r = new Rect(2, 4, 6, 8),
+      r2 = new Rect(r);
+  r2.inflate_ip(4, 6);
+
+  test.assertEqual(r.center, r2.center);
+  test.assertEqual(r.left - 2, r2.left);
+  test.assertEqual(r.top - 3, r2.top);
+  test.assertEqual(r.right + 2, r2.right);
+  test.assertEqual(r.bottom + 3, r2.bottom);
+  test.assertEqual(r.width + 4, r2.width);
+  test.assertEqual(r.height + 6, r2.height);
+}
+
+/*
+ * The inflate_ip method inflates around the center of the rectangle
+ */
+function test_inflate_ip__smaller() {
+  let r = new Rect(2, 4, 6, 8),
+      r2 = new Rect(r);
+  r2.inflate_ip(-4, -6);
+
+  test.assertEqual(r.center, r2.center);
+  test.assertEqual(r.left + 2, r2.left);
+  test.assertEqual(r.top + 3, r2.top);
+  test.assertEqual(r.right - 2, r2.right);
+  test.assertEqual(r.bottom - 3, r2.bottom);
+  test.assertEqual(r.width - 4, r2.width);
+  test.assertEqual(r.height - 6, r2.height);
+}
+
+function test_clamp() {
+  let r = new Rect(10, 10, 10, 10),
+      c = (new Rect(19, 12, 5, 5)).clamp(r);
+  test.assertEqual(c.right, r.right);
+  test.assertEqual(c.top, 12);
+  c = (new Rect(1, 2, 3, 4)).clamp(r);
+  test.assertEqual(c.topleft, r.topleft);
+  c = (new Rect(5, 500, 22, 33)).clamp(r);
+  test.assertEqual(c.center, r.center);
+}
+
+function test_clamp_ip() {
+  let r = new Rect(10, 10, 10, 10),
+      c = new Rect(19, 12, 5, 5);
+  c.clamp_ip(r);
+  test.assertEqual(c.right, r.right);
+  test.assertEqual(c.top, 12);
+  c = new Rect(1, 2, 3, 4);
+  c.clamp_ip(r);
+  test.assertEqual(c.topleft, r.topleft);
+  c = new Rect(5, 500, 22, 33);
+  c.clamp_ip(r);
+  test.assertEqual(c.center, r.center);
+}
+
+function test_clip() {
+  let r1 = new Rect(1, 2, 3, 4);
+  test.assertEqual(new Rect(1, 2, 2, 2), r1.clip(new Rect(0, 0, 3, 4)));
+  test.assertEqual(new Rect(2, 2, 2, 4), r1.clip(new Rect(2, 2, 10, 20)));
+  test.assertEqual(new Rect(2, 3, 1, 2), r1.clip(new Rect(2, 3, 1, 2)));
+  test.assertEqual([0, 0], r1.clip(20, 30, 5, 6).size);
+  test.assertEqual(r1, r1.clip(new Rect(r1)), "r1 does not clip an identical rect to itself");
+}
+
+function test_clip_ip() {
+  let r = new Rect(1, 2, 3, 4);
+  r.clip_ip(new Rect(0, 0, 3, 4));
+  test.assertEqual(new Rect(1, 2, 2, 2), r);
+  r = new Rect(1, 2, 3, 4);
+  r.clip_ip(new Rect(2, 2, 10, 20));
+  test.assertEqual(new Rect(2, 2, 2, 4), r);
+  r = new Rect(1, 2, 3, 4);
+  r.clip_ip(new Rect(2, 3, 1, 2));
+  test.assertEqual(new Rect(2, 3, 1, 2), r);
+  r = new Rect(1, 2, 3, 4);
+  r.clip_ip(20, 30, 5, 6);
+  test.assertEqual([0, 0], r.size);
+  r = new Rect(1, 2, 3, 4);
+  r.clip_ip(1, 2, 3, 4);
+  test.assertEqual(new Rect(1, 2, 3, 4), r, "r does not clip an identical rect to itself");
+}
+
+function test_move() {
+  let r = new Rect(1, 2, 3, 4),
+      move_x = 10,
+      move_y = 20,
+      r2 = r.move(move_x, move_y),
+      expected_r2 = new Rect(r.left + move_x, r.top + move_y, r.width, r.height);
+  test.assertEqual(expected_r2, r2);
+}
+
+function test_move_ip() {
+  let r = new Rect(1, 2, 3, 4),
+      r2 = new Rect(r),
+      move_x = 10,
+      move_y = 20,
+      expected_r2 = new Rect(r.left + move_x, r.top + move_y, r.width, r.height);
+  r2.move_ip(move_x, move_y);
+  test.assertEqual(expected_r2, r2);
+}
+
+function test_union() {
+  let r1 = new Rect(1, 1, 1, 2),
+      r2 = new Rect(-2, -2, 1, 2);
+  test.assertEqual(new Rect(-2, -2, 4, 5), r1.union(r2));
+}
+
+function test_union__with_identical_Rect() {
+  let r = new Rect(1, 2, 3, 4);
+  test.assertEqual(r, r.union(new Rect(r)));
+}
+
+function test_union_ip() {
+  let r1 = new Rect(1, 1, 1, 2),
+      r2 = new Rect(-2, -2, 1, 2);
+  r1.union_ip(r2)
+  test.assertEqual(new Rect(-2, -2, 4, 5), r1);
+}
+
+function test_unionall() {
+  let r1 = new Rect(0, 0, 1, 1),
+      r2 = new Rect(-2, -2, 1, 1),
+      r3 = new Rect(2, 2, 1, 1),
+      r4 = r1.unionall([r2, r3]);
+  test.assertEqual(new Rect(-2, -2, 5, 5), r4);
+
+  test.assertEqual(r1.unionall([]), r1);
+}
+
+function test_unionall_ip() {
+  let r1 = new Rect(0, 0, 1, 1),
+      r2 = new Rect(-2, -2, 1, 1),
+      r3 = new Rect(2, 2, 1, 1);
+  r1.unionall_ip([r2, r3]);
+  test.assertEqual(new Rect(-2, -2, 5, 5), r1);
+
+  test.assertIs(r1.unionall_ip([]), undefined);
+}
+
+function test_colliderect() {
+  let r1 = new Rect(1, 2, 3, 4);
+  test.assertTrue(r1.colliderect(new Rect(0, 0, 2, 3)),
+                  "r1 does not collide with Rect(0,0,2,3)");
+  test.assertFalse(r1.colliderect(new Rect(0, 0, 1, 2)),
+                   "r1 collides with Rect(0,0,1,2)");
+  test.assertFalse(r1.colliderect(new Rect(r1.right, r1.bottom, 2, 2)),
+                   "r1 collides with Rect(r1.right,r1.bottom,2,2)");
+  test.assertTrue(r1.colliderect(new Rect(r1.left + 1, r1.top + 1, r1.width - 2, r1.height - 2)),
+                  "r1 does not collide with Rect(r1.left+1,r1.top+1,r1.width-2,r1.height-2)");
+  test.assertTrue(r1.colliderect(new Rect(r1.left - 1, r1.top - 1, r1.width + 2, r1.height + 2)),
+                  "r1 does not collide with Rect(r1.left-1,r1.top-1,r1.width+2,r1.height+2)");
+  test.assertTrue(r1.colliderect(new Rect(r1)),
+                  "r1 does not collide with an identical rect");
+  test.assertFalse(r1.colliderect(new Rect(r1.right, r1.bottom, 0, 0)),
+                   "r1 collides with Rect(r1.right,r1.bottom,0,0)");
+  test.assertFalse(r1.colliderect(new Rect(r1.right, r1.bottom, 1, 1)),
+                   "r1 collides with Rect(r1.right,r1.bottom,1,1)");
+}
+
+function test_collidedict() {
+  let r = new Rect(1, 1, 10, 10),
+      r1 = new Rect(1, 1, 10, 10),
+      r2 = new Rect(50, 50, 10, 10),
+      r3 = new Rect(70, 70, 10, 10),
+      r4 = new Rect(61, 61, 10, 10),
+      d = new Map([[1, r1], [2, r2], [3, r3]]),
+      rects_values = 1,
+      val = r.collidedict(d, rects_values),
+      none_d = new Map([[2, r2], [3, r3]]),
+      none_val = r.collidedict(none_d, rects_values),
+      barely_val = r4.collidedict(d, rects_values);
+  test.assertEqual(val, [1, r1]);
+
+  test.assertEqual(none_val, undefined);
+
+  test.assertEqual(barely_val, [3, r3]);
+}
+
+function test_collidedictall() {
+  let r = new Rect(1, 1, 10, 10),
+      r2 = new Rect(1, 1, 10, 10),
+      r3 = new Rect(5, 5, 10, 10),
+      r4 = new Rect(10, 10, 10, 10),
+      r5 = new Rect(50, 50, 10, 10),
+      rects_values = 1,
+      d = new Map([[2, r2]]),
+      collisions = r.collidedictall(d, rects_values),
+      d2 = new Map([[2, r2], [3, r3], [4, r4], [5, r5]]),
+      l2 = r.collidedictall(d2, rects_values);
+  test.assertEqual(collisions.length, 1);
+  test.assertEqual(collisions[0][0], 2);
+  test.assertEqual(collisions[0][1], r2);
+
+  test.assertEqual(l2.length, 3);
+  test.assertEqual(l2[0][0], 2);
+  test.assertEqual(l2[0][1], r2);
+  test.assertEqual(l2[1][0], 3);
+  test.assertEqual(l2[1][1], r3);
+  test.assertEqual(l2[2][0], 4);
+  test.assertEqual(l2[2][1], r4);
+}
+
+function test_collidelist() {
+  let r = new Rect(1, 1, 10, 10),
+      other = [new Rect(50, 50, 1, 1), new Rect(5, 5, 10, 10), new Rect(15, 15, 1, 1)],
+      f = [new Rect(50, 50, 1, 1), new Rect(100, 100, 4, 4)];
+  test.assertEqual(r.collidelist(other), 1);
+  test.assertEqual(r.collidelist(f), -1);
+}
+
+function test_collidelistall() {
+  let r = new Rect(1, 1, 10, 10),
+      other = [
+        new Rect(1, 1, 10, 10),
+        new Rect(5, 5, 10, 10),
+        new Rect(15, 15, 1, 1),
+        new Rect(2, 2, 1, 1)
+      ],
+      f = [new Rect(50, 50, 1, 1), new Rect(20, 20, 5, 5)];
+  test.assertEqual(r.collidelistall(other), [0, 1, 3]);
+  test.assertEqual(r.collidelistall(f).length, 0);
+}
+
+function test_fit() {
+  let r = new Rect(10, 10, 30, 30),
+      r2 = new Rect(30, 30, 15, 10),
+      f = r.fit(r2),
+      f2 = r2.fit(r);
+  test.assertTrue(r2.contains(f));
+  test.assertTrue(r.contains(f2));
+}
+
+function test_copy() {
+  let r = new Rect(1, 2, 10, 20),
+      c = r.copy()
+  test.assertEqual(c, r);
+}
+
+test.main();
+</script>
+</body>
+
+</html>
