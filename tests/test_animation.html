@@ -28,7 +28,7 @@ function test_basic_animation() {
   for (let tween of ['linear', ' linear', 'linear ', '  linear  ']) {
     for (let value of [tween, tween.toUpperCase(), tween.replace('l', 'L')]) {
       p.attribute = 0;
-      a = new Inbetweener(p, value, 2, {attribute: 2});
+      a = new Inbetweener(p, 2, {attribute: 2}, value);
       test.assertFalse(a.done);
       test.assertEqual(p.attribute, 0);
       a.update(1);
@@ -55,7 +55,7 @@ function test_some_tween() {
   for (let tween of ['accelerate', ' accelerate', 'accelerate ', '  accelerate  ']) {
     for (let value of [tween, tween.toUpperCase(), tween.replace('a', 'A')]) {
       p.attribute = 0;
-      a = new Inbetweener(p, value, 2, {attribute: 2});
+      a = new Inbetweener(p, 2, {attribute: 2}, value);
       test.assertFalse(a.done);
       test.assertEqual(p.attribute, 0);
       a.update(1);
@@ -80,7 +80,7 @@ function test_some_tween() {
  */
 function test_array_animation() {
   let p = {attribute: [0, 2]};
-      a = new Inbetweener(p, 'linear', 2, {attribute: [2, 0]});
+      a = new Inbetweener(p, 2, {attribute: [2, 0]});
   test.assertFalse(a.done);
   test.assertEqual(p.attribute, [0, 2]);
   a.update(1);
@@ -97,6 +97,136 @@ function test_array_animation() {
   test.assertEqual(p.attribute, [2, 0]);
 }
 
+function test_multiple_animations() {
+  let p = {a: 0, b: 0};
+      a = new Inbetweener(p, 2, {a: 2}),
+      b = new Inbetweener(p, 2, {b: 20});
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 0);
+  test.assertEqual(p.b, 0);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 1);
+  test.assertEqual(p.b, 0);
+  b.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 1);
+  test.assertEqual(p.b, 10);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 10);
+  b.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+  b.update(1);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+  b.update(1);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+}
+
+function test_multiple_attributes() {
+  let p = {a: 0, b: 0, c: 0};
+      a = new Inbetweener(p, 2, {a: 2, b: 20, c: 200});
+  test.assertFalse(a.done);
+  test.assertEqual(p.a, 0);
+  test.assertEqual(p.b, 0);
+  test.assertEqual(p.c, 0);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertEqual(p.a, 1);
+  test.assertEqual(p.b, 10);
+  test.assertEqual(p.c, 100);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+  test.assertEqual(p.c, 200);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+  test.assertEqual(p.c, 200);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 20);
+  test.assertEqual(p.c, 200);
+}
+
+function test_multiple_puppets() {
+  let p = {attribute: 0},
+      q = {attribute: 0},
+      a = new Inbetweener(p, 2, {attribute: 2}),
+      b = new Inbetweener(q, 2, {attribute: 20});
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 0);
+  test.assertEqual(q.attribute, 0);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 1);
+  test.assertEqual(q.attribute, 0);
+  b.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 1);
+  test.assertEqual(q.attribute, 10);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 10);
+  b.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+  b.update(1);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+  b.update(1);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+}
+
 /*
  * Test the callback works
  */
@@ -107,7 +237,7 @@ function test_on_finished() {
   function pop() {
     endlist.pop();
   }
-  a = new Inbetweener(p, 'linear', 2, {attribute: 2}, pop);
+  a = new Inbetweener(p, 2, {attribute: 2}, 'linear', pop);
 
   test.assertFalse(a.done);
   test.assertEqual(p.attribute, 0);
@@ -133,7 +263,7 @@ function test_on_finished() {
 function test_not_finished() {
   let p = {attribute: 0},
       endlist = ['in progress'],
-      a = new Inbetweener(p, 'linear', 2, {attribute: 2}, 42);
+      a = new Inbetweener(p, 2, {attribute: 2}, 'linear', 42);
   test.assertFalse(a.done);
   test.assertEqual(p.attribute, 0);
   test.assertEqual(endlist, ['in progress']);
@@ -278,7 +408,7 @@ function test_bounce_start_end() {
 function test_constructor_errors() {
   let p = {attribute: 0}, a;
   try {
-    a = new Inbetweener(42, 'linear', 2, {attribute: 2});
+    a = new Inbetweener(42, 2, {attribute: 2});
     console.assert(false, 'TypeError not raised.');
   }
   catch (error) {
@@ -286,31 +416,14 @@ function test_constructor_errors() {
   }
 
   try {
-    a = new Inbetweener(p, 42, 2, {attribute: 2});
+    a = new Inbetweener(p, 'foobar', {attribute: 2});
     console.assert(false, 'TypeError not raised.');
   }
   catch (error) {
     test.assertTrue(error instanceof TypeError);
   }
   try {
-    a = new Inbetweener(p, '_out_bounce_internal', 2, {attribute: 2});
-    console.assert(false, 'TypeError not raised.');
-  }
-  catch (error) {
-    test.assertTrue(error instanceof TypeError);
-  }
-  for (let value of ['', 'foobar']) {
-    try {
-      a = new Inbetweener(p, value, 2, {attribute: 2});
-      console.assert(false, 'RangeError not raised.');
-    }
-    catch (error) {
-      test.assertTrue(error instanceof RangeError);
-    }
-  }
-
-  try {
-    a = new Inbetweener(p, 'linear', -1, {attribute: 2});
+    a = new Inbetweener(p, -1, {attribute: 2});
     console.assert(false, 'RangeError not raised.');
   }
   catch (error) {
@@ -318,26 +431,42 @@ function test_constructor_errors() {
   }
 
   try {
-    a = new Inbetweener(p, 'linear', 2, 42);
+    a = new Inbetweener(p, 2, 42);
     console.assert(false, 'TypeError not raised.');
   }
   catch (error) {
     test.assertTrue(error instanceof TypeError);
   }
+
+  a = new Inbetweener(p, 2, {attribute: 2});
+  test.assertEqual(a.tween, 'linear');
+  a = new Inbetweener(p, 2, {attribute: 2}, 42);
+  test.assertEqual(a.tween, 'linear');
+  a = new Inbetweener(p, 2, {attribute: 2}, p);
+  test.assertEqual(a.tween, 'linear');
+  for (let value of ['', 'foobar', '_out_bounce_internal']) {
+    try {
+      a = new Inbetweener(p, 2, {attribute: 2}, value);
+      console.assert(false, 'RangeError not raised.');
+    }
+    catch (error) {
+      test.assertTrue(error instanceof RangeError);
+    }
+  }
 }
 
 function test_no_attribute() {
   let p = {attribute: 0},
-      a = new Inbetweener(p, 'linear', 2, {foo: 42});
+      a = new Inbetweener(p, 2, {foo: 42});
   test.assertTrue(a.done);
-  a = new Inbetweener(p, 'linear', 2, {attribute: 'bar'});
+  a = new Inbetweener(p, 2, {attribute: 'bar'});
   test.assertTrue(a.done);
 
   p.attribute = [0, 2];
-  a = new Inbetweener(p, 'linear', 2, {attribute: [2, 'bar']});
+  a = new Inbetweener(p, 2, {attribute: [2, 'bar']});
   test.assertTrue(a.done);
   p.attribute = ['foo', 2];
-  a = new Inbetweener(p, 'linear', 2, {attribute: [2, 0]});
+  a = new Inbetweener(p, 2, {attribute: [2, 0]});
   test.assertTrue(a.done);
 }
 

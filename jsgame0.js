@@ -1087,7 +1087,7 @@ class Rect {
         widths = [this.x + this.width],
         heights = [this.y + this.height];
     for (let other of others) {
-      let rect = new Rect(...[other]);
+      let rect = new Rect(other);
       xs.push(rect.x);
       ys.push(rect.y);
       widths.push(rect.x + rect.width);
@@ -1169,7 +1169,7 @@ class Rect {
     let result = [],
         i = 0;
     for (let other of others) {
-      let rect = new Rect(...[other]);
+      let rect = new Rect(other);
       if (this.colliderect(rect)) {
         result.push(i);
       }
@@ -1723,22 +1723,27 @@ class Inbetweener {
     return ((Inbetweener._out_bounce_internal(p - 1, 1) * 0.5) + 0.5);
   }
 
-  constructor(puppet, tween, duration, attributes, callback) {
+  constructor(puppet, duration, attributes, tween, callback) {
     if (typeof puppet !== 'object') {
       throw new TypeError('puppet must be an object.');
     }
-    if ((typeof tween !== 'string') || tween.startsWith('_')) {
-      throw new TypeError('tween must be a string.');
-    }
-    this.tween = tween.trim().toLowerCase();
-    if (!(this.tween in Inbetweener)) {
-      throw new RangeError(`Unrecognized tween function "${ tween }".`);
+    if (typeof duration !== 'number') {
+      throw new TypeError('duration must be a positive number.');
     }
     if (duration <= 0) {
-      throw new RangeError('duration must be positive.');
+      throw new RangeError('duration must be a positive number.');
     }
     if (typeof attributes !== 'object') {
       throw new TypeError('attributes must be an object.');
+    }
+    if (typeof tween !== 'string') {
+      this.tween = 'linear';
+    }
+    else {
+      this.tween = tween.trim().toLowerCase();
+      if (this.tween.startsWith('_') || (!(this.tween in Inbetweener))) {
+        throw new RangeError(`Unrecognized tween function "${ tween }".`);
+      }
     }
 
     this.puppet = puppet;
@@ -2307,7 +2312,7 @@ const screen = (function () {
         return;
       }
       let animation;
-      if (arguments.length < 4) {
+      if (arguments.length < 3) {
         animation = arguments[0];
       }
       else {
