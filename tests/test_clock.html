@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test clock</title>
   <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
   <style type="text/css" media="screen">
 body {
   background-color: white;
@@ -19,27 +20,131 @@ body {
 <h1>Test clock</h1>
 
 <script>
-function one() {
-  console.log('1 second later');
-  clock.unschedule(ten);
+function reply() {
+  return 'reply';
 }
 
-function five() {
-  console.log('5 seconds');
+function RSVP() {
+  return 'RSVP';
 }
 
-function ten() {
-  console.log('10 seconds have passed');
-  clock.schedule(one, 1);
+function test_sanity() {
+  test.assertEqual(clock._get_queue(), []);
+  clock._clear_queue();
+  test.assertEqual(clock._get_queue(), []);
 }
 
-function done() {
-  console.log('all done');
+function test_schedule() {
+  test.assertEqual(clock._get_queue(), []);
+  clock.schedule(reply, 5);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  clock.schedule(reply, 10);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0]]);
+  clock.schedule(reply, 15);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0], [reply, 15, 0]]);
+  clock._clear_queue();
+  test.assertEqual(clock._get_queue(), []);
 }
 
-clock.schedule_unique(five, 5);
-clock.schedule_interval(ten, 10);
-clock.schedule(done, 15);
+function test_schedule_error() {
+  test.assertRaises(TypeError, clock.schedule, 42, 5);
+  test.assertRaises(TypeError, clock.schedule, 'foobar', 5);
+  test.assertRaises(TypeError, clock.schedule, reply, 'foobar');
+  test.assertRaises(RangeError, clock.schedule, reply, -5);
+}
+
+function test_schedule_unique() {
+  test.assertEqual(clock._get_queue(), []);
+  for (let delay of [5, 10, 15]) {
+    clock.schedule_unique(reply, delay);
+    test.assertEqual(clock._get_queue(), [[reply, delay, 0]]);
+  }
+  clock._clear_queue();
+  test.assertEqual(clock._get_queue(), []);
+}
+
+/*
+ * clock.schedule_unique() uses this so we need to bind it
+ * when running in a different context.
+ */
+function test_schedule_unique_error() {
+  test.assertRaises(TypeError, clock.schedule_unique.bind(clock), 42, 5);
+  test.assertRaises(TypeError, clock.schedule_unique.bind(clock), 'foobar', 5);
+  test.assertRaises(TypeError, clock.schedule_unique.bind(clock), reply, 'foobar');
+  test.assertRaises(RangeError, clock.schedule_unique.bind(clock), reply, -5);
+}
+
+function test_schedule_interval() {
+  test.assertEqual(clock._get_queue(), []);
+  clock.schedule_interval(reply, 5);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 5]]);
+  clock.schedule_interval(reply, 10);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 5], [reply, 10, 10]]);
+  clock.schedule_interval(reply, 15);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 5], [reply, 10, 10], [reply, 15, 15]]);
+  clock._clear_queue();
+  test.assertEqual(clock._get_queue(), []);
+}
+
+function test_schedule_interval_error() {
+  test.assertRaises(TypeError, clock.schedule_interval, 42, 5);
+  test.assertRaises(TypeError, clock.schedule_interval, 'foobar', 5);
+  test.assertRaises(TypeError, clock.schedule_interval, reply, 'foobar');
+  test.assertRaises(RangeError, clock.schedule_interval, reply, -5);
+}
+
+function test_unschedule() {
+  test.assertEqual(clock._get_queue(), []);
+  clock.schedule(reply, 5);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  clock.unschedule(RSVP);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  clock.unschedule(reply);
+  test.assertEqual(clock._get_queue(), []);
+}
+
+function test_unschedule_interval() {
+  test.assertEqual(clock._get_queue(), []);
+  clock.schedule_interval(reply, 5);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 5]]);
+  clock.schedule_interval(RSVP, 10);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 5], [RSVP, 10, 10]]);
+  clock.unschedule(reply);
+  test.assertEqual(clock._get_queue(), [[RSVP, 10, 10]]);
+  clock.unschedule(RSVP);
+  test.assertEqual(clock._get_queue(), []);
+}
+
+function test_unschedule_error() {
+  test.assertRaises(TypeError, clock.unschedule, 42);
+  test.assertRaises(TypeError, clock.unschedule, 'foobar');
+}
+
+function test_update_queue() {
+  test.assertEqual(clock._get_queue(), []);
+  clock.schedule(reply, 5);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  clock.schedule_interval(RSVP, 10);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [RSVP, 10, 10]]);
+  clock.schedule(reply, 15);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [RSVP, 10, 10], [reply, 15, 0]]);
+  clock._update_queue(1);
+  test.assertEqual(clock._get_queue(), [[reply, 4, 0], [RSVP, 9, 10], [reply, 14, 0]]);
+  clock._update_queue(2);
+  test.assertEqual(clock._get_queue(), [[reply, 2, 0], [RSVP, 7, 10], [reply, 12, 0]]);
+  clock._update_queue(3);
+  test.assertEqual(clock._get_queue(), [[RSVP, 4, 10], [reply, 9, 0]]);
+  clock._update_queue(4);
+  test.assertEqual(clock._get_queue(), [[RSVP, 10, 10], [reply, 5, 0]]);
+  clock._update_queue(5);
+  test.assertEqual(clock._get_queue(), [[RSVP, 5, 10]]);
+  clock._update_queue(5);
+  test.assertEqual(clock._get_queue(), [[RSVP, 10, 10]]);
+  clock._clear_queue();
+  test.assertEqual(clock._get_queue(), []);
+}
+
+test.main();
 </script>
 </body>
 
