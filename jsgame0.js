@@ -694,26 +694,31 @@ const keyboard = (function () {
   }
 })();
 
+/*
+ * Global object to schedule a function to happen in the future.
+ *
+ * We manually track the callbacks instead of using setTimeout() and
+ * setInterval() so they can be synchronized with the core game loop.
+ */
 const clock = (function () {
-  // Map each callback function to its Set of timeout IDs
-  const TIMEOUT_MAP = new Map();
-
-  // Map each callback function to its Set of interval IDs
-  const INTERVAL_MAP = new Map();
+  // Array of Arrays containing the scheduled callbacks
+  let queue = [];
 
   return {
     /*
      * Schedule callback to be called, at delay seconds from now.
      */
     schedule(callback, delay) {
-      // JavaScript time is in milliseconds not seconds like Pygame Zero!
-      let timeoutID = setTimeout(callback, delay * 1000);
-      if (TIMEOUT_MAP.has(callback)) {
-        TIMEOUT_MAP.get(callback).add(timeoutID);
+      if (typeof callback !== 'function') {
+        throw new TypeError('callback must be a function.');
       }
-      else {
-        TIMEOUT_MAP.set(callback, new Set([timeoutID]));
+      if (typeof delay !== 'number') {
+        throw new TypeError('delay must be a positive number.');
       }
+      if (delay <= 0) {
+        throw new RangeError('delay must be a positive number.');
+      }
+      queue.push([callback, delay, 0]);
     },
 
     /*
@@ -728,32 +733,57 @@ const clock = (function () {
      * Schedule callback to be called repeatedly with interval seconds between calls.
      */
     schedule_interval(callback, interval) {
-      // JavaScript time is in milliseconds not seconds like Pygame Zero!
-      let intervalID = setInterval(callback, interval * 1000);
-      if (INTERVAL_MAP.has(callback)) {
-        INTERVAL_MAP.get(callback).add(intervalID);
+      if (typeof callback !== 'function') {
+        throw new TypeError('callback must be a function.');
       }
-      else {
-        INTERVAL_MAP.set(callback, new Set([intervalID]));
+      if (typeof interval !== 'number') {
+        throw new TypeError('interval must be a positive number.');
       }
+      if (interval <= 0) {
+        throw new RangeError('interval must be a positive number.');
+      }
+      queue.push([callback, interval, interval]);
     },
 
     /*
      * Unschedule the given callback.
      */
     unschedule(callback) {
-      if (TIMEOUT_MAP.has(callback)) {
-        for (const id of TIMEOUT_MAP.get(callback)) {
-          clearTimeout(id);
-        }
-        TIMEOUT_MAP.get(callback).clear();
+      if (typeof callback !== 'function') {
+        throw new TypeError('callback must be a function.');
       }
-      if (INTERVAL_MAP.has(callback)) {
-        for (const id of INTERVAL_MAP.get(callback)) {
-          clearInterval(id);
+      queue = queue.filter(q => (q[0] !== callback));
+    },
+
+    _clear_queue() {
+      queue = [];
+    },
+
+    /*
+     * Return a copy of queue for testing.
+     */
+    _get_queue() {
+      return queue.slice();
+    },
+
+    /*
+     * Loop through all the callbacks in queue and call any that are due.
+     */
+    _update_queue(dt) {
+      let result = [], newETA;
+      for (let [callback, eta, next] of queue) {
+        newETA = eta - dt;
+        if (newETA <= 0) {
+          callback();
+          if (next > 0) {
+            result.push([callback, next, next]);
+          }
         }
-        INTERVAL_MAP.get(callback).clear();
+        else {
+          result.push([callback, newETA, next]);
+        }
       }
+      queue = result;
     }
   }
 })();
@@ -1942,6 +1972,8 @@ const screen = (function () {
     const elapsed = (timestamp - start) / 1000;
     start = timestamp;
 
+    clock._update_queue(elapsed);
+
     // Animate any Inbetweener objects in the queue
     for (let a of animationQueue) {
       a.update(elapsed);
@@ -2374,6 +2406,7 @@ const screen = (function () {
             pause = document.querySelector(pauseID);
       if (reset != null) {
         reset.addEventListener('click', (event) => {
+          clock._clear_queue();
           if (typeof window.reset === 'function') {
             window.reset();
           }
@@ -2417,6 +2450,8 @@ const screen = (function () {
           canvas.addEventListener('mousemove', mousemove);
         }
       }
+
+      screen.clear();
 
       // Start the core game loop
       start = undefined;
