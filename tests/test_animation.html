@@ -470,6 +470,104 @@ function test_no_attribute() {
   test.assertTrue(a.done);
 }
 
+function test_animate() {
+  let p = {attribute: 0}, a, b;
+  test.assertEqual(Inbetweener.queue, []);
+  a = animate(p, 2, {attribute: 2});
+  test.assertEqual(Inbetweener.queue, [a]);
+  test.assertFalse(a.done);
+  b = animate(p, 2, {foo: 42});
+  test.assertEqual(Inbetweener.queue, [a]);
+  test.assertTrue(b.done);
+  Inbetweener._clear_queue();
+  test.assertEqual(Inbetweener.queue, []);
+}
+
+function test_animate_existing() {
+  let p = {attribute: 0},
+      a = new Inbetweener(p, 2, {attribute: 2}),
+      b = new Inbetweener(p, 2, {foo: 42});
+  test.assertFalse(a.done);
+  test.assertTrue(b.done);
+
+  test.assertEqual(Inbetweener.queue, []);
+  animate(a);
+  test.assertEqual(Inbetweener.queue, [a]);
+  animate(b);
+  test.assertEqual(Inbetweener.queue, [a]);
+  Inbetweener._clear_queue();
+  test.assertEqual(Inbetweener.queue, []);
+}
+
+function test_animate_errors() {
+  let p = {attribute: 0}, a;
+  test.assertRaises(Error, animate);
+  test.assertRaises(Error, animate, 42);
+  test.assertRaises(Error, animate, 'foobar');
+  test.assertRaises(Error, animate, 'foobar', 42);
+  test.assertRaises(TypeError, animate, 42, 2, {attribute: 2});
+  test.assertRaises(TypeError, animate, p, 'foobar', {attribute: 2});
+  test.assertRaises(RangeError, animate, p, -1, {attribute: 2});
+  test.assertRaises(TypeError, animate, p, 2, 42);
+
+  a = animate(p, 2, {attribute: 2});
+  test.assertEqual(a.tween, 'linear');
+  test.assertTrue(Inbetweener.queue.includes(a));
+  a = animate(p, 2, {attribute: 2}, 42);
+  test.assertEqual(a.tween, 'linear');
+  test.assertTrue(Inbetweener.queue.includes(a));
+  a = animate(p, 2, {attribute: 2}, p);
+  test.assertEqual(a.tween, 'linear');
+  test.assertTrue(Inbetweener.queue.includes(a));
+  for (let value of ['', 'foobar', '_out_bounce_internal']) {
+    test.assertRaises(RangeError, animate, p, 2, {attribute: 2}, value);
+  }
+
+  Inbetweener._clear_queue();
+  test.assertEqual(Inbetweener.queue, []);
+}
+
+function test_update_queue() {
+  let p = {attribute: 0},
+      q = {attribute: 0},
+      a = new Inbetweener(p, 2, {attribute: 2}),
+      b = new Inbetweener(q, 2, {attribute: 20});
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 0);
+  test.assertEqual(q.attribute, 0);
+
+  test.assertEqual(Inbetweener.queue, []);
+  animate(a);
+  test.assertEqual(Inbetweener.queue, [a]);
+  animate(b);
+  test.assertEqual(Inbetweener.queue, [a, b]);
+  Inbetweener._update_queue(1);
+  test.assertEqual(Inbetweener.queue, [a, b]);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 1);
+  test.assertEqual(q.attribute, 10);
+  Inbetweener._update_queue(1);
+  test.assertEqual(Inbetweener.queue, [a, b]);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+  Inbetweener._update_queue(1);
+  test.assertEqual(Inbetweener.queue, []);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+  Inbetweener._update_queue(1);
+  test.assertEqual(Inbetweener.queue, []);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+}
+
 test.main();
 </script>
 </body>
