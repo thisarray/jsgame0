@@ -31,6 +31,7 @@ In addition,
 - Performance does not matter.
 - It is designed for educational environments and emphasizes getting the features right first time.
   So the API is very stable.
+- It will all be for nought when [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly) allows Python to run directly in the browser.
 
 ## License
 

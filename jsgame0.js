@@ -1753,6 +1753,30 @@ class Inbetweener {
     return ((Inbetweener._out_bounce_internal(p - 1, 1) * 0.5) + 0.5);
   }
 
+  // Animation queue: Array of Inbetweener objects
+  static queue = [];
+
+  /*
+   * Clear the animation queue.
+   */
+  static _clear_queue() {
+    this.queue = [];
+  }
+
+  /*
+   * Loop through all the animations in the animation queue and tween.
+   */
+  static _update_queue(dt) {
+    let result = [];
+    for (let a of this.queue) {
+      a.update(dt);
+      if (!a.done) {
+        result.push(a);
+      }
+    }
+    this.queue = result;
+  }
+
   constructor(puppet, duration, attributes, tween, callback) {
     if (typeof puppet !== 'object') {
       throw new TypeError('puppet must be an object.');
@@ -1853,6 +1877,34 @@ class Inbetweener {
 }
 
 /*
+ * Animate the attributes on puppet from their current value to that
+ * specified in the attributes object over duration.
+ */
+function animate() {
+  if (arguments.length < 1) {
+    // If there are not enough arguments
+    throw new Error('Not enough arguments.');
+  }
+
+  let animation;
+  if (arguments.length < 3) {
+    animation = arguments[0];
+  }
+  else {
+    animation = new Inbetweener(...arguments);
+  }
+  if (animation instanceof Inbetweener) {
+    if (!animation.done) {
+      Inbetweener.queue.push(animation);
+    }
+    return animation;
+  }
+  else {
+    throw new Error('Not enough arguments.');
+  }
+}
+
+/*
  * The global screen object representing your game screen.
  *
  * It mimicks the Python object using Immediately Invoked Function Expression/Self-Executing Anonymous Function.
@@ -1899,7 +1951,6 @@ const screen = (function () {
       hasDraw = false,
       hasUpdate = false,
       running = 0,
-      animationQueue = [],
       start;
 
   /*
@@ -1973,12 +2024,7 @@ const screen = (function () {
     start = timestamp;
 
     clock._update_queue(elapsed);
-
-    // Animate any Inbetweener objects in the queue
-    for (let a of animationQueue) {
-      a.update(elapsed);
-    }
-    animationQueue = animationQueue.filter(a => (!a.done));
+    Inbetweener._update_queue(elapsed);
 
     if (hasUpdate) {
       window.update(elapsed);
@@ -2339,24 +2385,6 @@ const screen = (function () {
       }
     },
 
-    animate() {
-      if (arguments.length < 1) {
-        return;
-      }
-      let animation;
-      if (arguments.length < 3) {
-        animation = arguments[0];
-      }
-      else {
-        animation = new Inbetweener(...arguments);
-      }
-      if (animation instanceof Inbetweener) {
-        if (!animation.done) {
-          animationQueue.push(animation);
-        }
-      }
-    },
-
     /*
      * Setup the screen object to draw to the canvas element with ID canvasID.
      *
@@ -2407,6 +2435,7 @@ const screen = (function () {
       if (reset != null) {
         reset.addEventListener('click', (event) => {
           clock._clear_queue();
+          Inbetweener._clear_queue();
           if (typeof window.reset === 'function') {
             window.reset();
           }
