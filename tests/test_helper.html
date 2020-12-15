@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test helper</title>
+  <script src="../helper.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test helper</h1>
+
+<script>
+function test_getRandom() {
+  for (let [min, max] of [
+    [0, 1],
+    [0.0, 1.0],
+    [1, 10],
+    [1.0, 10.0],
+    [10, 100],
+    [10.0, 100.0]]) {
+    for (let i = 0; i < 100; i++) {
+      let value = getRandom(min, max),
+          valueString = value.toFixed(8),
+          index = valueString.indexOf('.');
+      test.assertTrue(value >= min);
+      test.assertTrue(value < max);
+      // Test value has a fraction part
+      test.assertTrue(index > 0);
+      test.assertTrue(valueString.substring(index + 1).length > 0);
+    }
+  }
+}
+
+function test_getRandomInteger() {
+  for (let [min, max] of [
+    [0, 1],
+    [0.0, 1.0],
+    [1, 10],
+    [1.0, 10.0],
+    [10, 100],
+    [10.0, 100.0]]) {
+    for (let i = 0; i < 100; i++) {
+      let value = getRandomInteger(min, max);
+      test.assertTrue(value >= min);
+      test.assertTrue(value < max);
+      test.assertEqual(value, Math.floor(value));
+    }
+  }
+}
+
+function test_angle() {
+  for (let [degrees, radians] of [
+    [0, 0],
+    [30, Math.PI / 6],
+    [45, Math.PI / 4],
+    [60, Math.PI / 3],
+    [90, Math.PI / 2],
+    [120, 2 * Math.PI / 3],
+    [135, 3 * Math.PI / 4],
+    [150, 5 * Math.PI / 6],
+    [180, Math.PI],
+    [210, 7 * Math.PI / 6],
+    [225, 5 * Math.PI / 4],
+    [240, 4 * Math.PI / 3],
+    [270, 3 * Math.PI / 2],
+    [300, 5 * Math.PI / 3],
+    [315, 7 * Math.PI / 4],
+    [330, 11 * Math.PI / 6],
+    [360, 2 * Math.PI]]) {
+    test.assertEqual(degreesToRadians(degrees).toFixed(8), radians.toFixed(8));
+    test.assertEqual(radiansToDegrees(radians).toFixed(8), degrees.toFixed(8));
+  }
+}
+
+test.main();
+</script>
+</body>
+
+</html>
