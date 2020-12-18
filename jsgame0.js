@@ -1913,9 +1913,11 @@ const screen = (function () {
   const DEFAULT_COLOR = 'white';
   const DEFAULT_FONT = 'sans-serif';
   const DEFAULT_FONT_SIZE = 24;
+  const DEFAULT_LINE_HEIGHT = 1.0;
   const DEFAULT_WIDTH = 800;
   const DEFAULT_HEIGHT = 600;
   const MAX_COLOR = 255;
+  const TAB_REGEX = /\t/g;
   const TWO_PI = Math.PI * 2;
 
   /*
@@ -1937,6 +1939,23 @@ const screen = (function () {
       b = Math.max(Math.min(b, MAX_COLOR), 0);
       return `rgb(${ r }, ${ g }, ${ b })`;
     }
+  }
+
+  /*
+   * Return the longest line in lines or the empty string.
+   */
+  function getLongest(lines) {
+    if (lines.length <= 0) {
+      return '';
+    }
+
+    let longest = 0;
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].length > lines[longest].length) {
+        longest = i;
+      }
+    }
+    return lines[longest];
   }
 
   /*
@@ -2158,69 +2177,104 @@ const screen = (function () {
         if (typeof text !== 'string') {
           return;
         }
+        if (context == null) {
+          return;
+        }
         context.save();
 
-        let fontsize = DEFAULT_FONT_SIZE,
-            fontname = DEFAULT_FONT,
+        let fontSize = DEFAULT_FONT_SIZE,
+            fontName = DEFAULT_FONT,
+            lineHeight = DEFAULT_LINE_HEIGHT,
             color = DEFAULT_COLOR,
             drawOutline = false,
+            // Use replace() and a regular expression
+            // because it has wider support than replaceAll()
+            lines = text.replace(TAB_REGEX, '    ').split('\n'),
             gcolor, x, y;
 
-        if ('fontsize' in config) {
-          fontsize = config['fontsize'];
+        if (('fontsize' in config) && (typeof config['fontsize'] === 'number')) {
+          fontSize = config['fontsize'];
         }
-        if ('fontname' in config) {
-          fontname = config['fontname'];
+        if (('fontname' in config) && (typeof config['fontname'] === 'string')) {
+          fontName = config['fontname'];
         }
-        context.font = fontsize + 'px ' + fontname;
+        context.font = fontSize + 'px ' + fontName;
+
+        if (('lineheight' in config) && (typeof config['lineheight'] === 'number')) {
+          lineHeight = config['lineheight'];
+        }
 
         context.textAlign = 'left';
         context.textBaseline = 'top';
-        if ('topleft' in config) {
-          [x=0, y=0] = config['topleft'];
+        if (rect instanceof Rect) {
+          // Change fontSize so text fits inside rect
+          const longestLine = getLongest(lines);
+          while (fontSize > 0) {
+            if ((context.measureText(longestLine).width < rect.width) &&
+                ((lines.length * fontSize * lineHeight) < rect.height)) {
+              break;
+            }
+            fontSize--;
+            context.font = fontSize + 'px ' + fontName;
+          }
+
+          ({x=0, y=0} = rect);
         }
-        else if ('midtop' in config) {
-          [x=0, y=0] = config['midtop'];
-          context.textAlign = 'center';
-          context.textBaseline = 'top';
-        }
-        else if ('topright' in config) {
-          [x=0, y=0] = config['topright'];
-          context.textAlign = 'right';
-          context.textBaseline = 'top';
-        }
-        else if ('midleft' in config) {
-          [x=0, y=0] = config['midleft'];
-          context.textAlign = 'left';
-          context.textBaseline = 'middle';
-        }
-        else if ('center' in config) {
-          [x=0, y=0] = config['center'];
-          context.textAlign = 'center';
-          context.textBaseline = 'middle';
-        }
-        else if ('midright' in config) {
-          [x=0, y=0] = config['midright'];
-          context.textAlign = 'right';
-          context.textBaseline = 'middle';
-        }
-        else if ('bottomleft' in config) {
-          [x=0, y=0] = config['bottomleft'];
-          context.textAlign = 'left';
-          context.textBaseline = 'bottom';
-        }
-        else if ('midbottom' in config) {
-          [x=0, y=0] = config['midbottom'];
-          context.textAlign = 'center';
-          context.textBaseline = 'bottom';
-        }
-        else if ('bottomright' in config) {
-          [x=0, y=0] = config['bottomright'];
-          context.textAlign = 'right';
-          context.textBaseline = 'bottom';
-        }
-        else if ('pos' in config) {
-          [x=0, y=0] = config['pos'];
+        else {
+          // Not constrained to fit inside rect
+          let yOffset = (lines.length - 1) * fontSize * lineHeight;
+          if ('topleft' in config) {
+            [x=0, y=0] = config['topleft'];
+          }
+          else if ('midtop' in config) {
+            [x=0, y=0] = config['midtop'];
+            context.textAlign = 'center';
+            context.textBaseline = 'top';
+          }
+          else if ('topright' in config) {
+            [x=0, y=0] = config['topright'];
+            context.textAlign = 'right';
+            context.textBaseline = 'top';
+          }
+          else if ('midleft' in config) {
+            [x=0, y=0] = config['midleft'];
+            y -= Math.floor(yOffset / 2);
+            context.textAlign = 'left';
+            context.textBaseline = 'middle';
+          }
+          else if ('center' in config) {
+            [x=0, y=0] = config['center'];
+            y -= Math.floor(yOffset / 2);
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+          }
+          else if ('midright' in config) {
+            [x=0, y=0] = config['midright'];
+            y -= Math.floor(yOffset / 2);
+            context.textAlign = 'right';
+            context.textBaseline = 'middle';
+          }
+          else if ('bottomleft' in config) {
+            [x=0, y=0] = config['bottomleft'];
+            y -= yOffset;
+            context.textAlign = 'left';
+            context.textBaseline = 'bottom';
+          }
+          else if ('midbottom' in config) {
+            [x=0, y=0] = config['midbottom'];
+            y -= yOffset;
+            context.textAlign = 'center';
+            context.textBaseline = 'bottom';
+          }
+          else if ('bottomright' in config) {
+            [x=0, y=0] = config['bottomright'];
+            y -= yOffset;
+            context.textAlign = 'right';
+            context.textBaseline = 'bottom';
+          }
+          else if ('pos' in config) {
+            [x=0, y=0] = config['pos'];
+          }
         }
 
         if ('color' in config) {
@@ -2246,66 +2300,32 @@ const screen = (function () {
         }
 
         context.fillStyle = color;
-        let gradient;
-        if (rect instanceof Rect) {
-          while (fontsize > 0) {
-            let m = context.measureText(text);
-            if (m.width < rect.width) {
-              if (gcolor != null) {
-                // The linear gradient is dependent on the fontsize to determine the line height
-                if (context.textBaseline === 'bottom') {
-                  gradient = context.createLinearGradient(0, y - fontsize, 0, y);
-                }
-                else if (context.textBaseline === 'middle') {
-                  gradient = context.createLinearGradient(0, y - Math.floor(fontsize / 2), 0, y + Math.floor(fontsize / 2));
-                }
-                else {
-                  gradient = context.createLinearGradient(0, y, 0, y + fontsize);
-                }
-                gradient.addColorStop(0, color);
-                gradient.addColorStop(1, gcolor);
-                context.fillStyle = gradient;
-              }
-
-              context.fillText(text, x, y);
-              if (drawOutline) {
-                context.strokeText(text, x, y);
-              }
-
-              break;
+        let lineSize = fontSize * lineHeight,
+            lineY = y,
+            gradient;
+        for (let line of lines) {
+          if (gcolor != null) {
+            // The linear gradient repeats for each line
+            if (context.textBaseline === 'bottom') {
+              gradient = context.createLinearGradient(0, lineY - lineSize, 0, lineY);
             }
-            fontsize--;
-            context.font = fontsize + 'px ' + fontname;
+            else if (context.textBaseline === 'middle') {
+              gradient = context.createLinearGradient(0, lineY - Math.floor(lineSize / 2), 0, lineY + Math.floor(lineSize / 2));
+            }
+            else {
+              gradient = context.createLinearGradient(0, lineY, 0, lineY + lineSize);
+            }
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, gcolor);
+            context.fillStyle = gradient;
           }
-        }
-        else {
-          let i = 0;
-          for (let line of text.split('\n')) {
-            let line_y = y + (i * fontsize);
 
-            if (gcolor != null) {
-              // The linear gradient repeats for each line
-              if (context.textBaseline === 'bottom') {
-                gradient = context.createLinearGradient(0, line_y - fontsize, 0, line_y);
-              }
-              else if (context.textBaseline === 'middle') {
-                gradient = context.createLinearGradient(0, line_y - Math.floor(fontsize / 2), 0, line_y + Math.floor(fontsize / 2));
-              }
-              else {
-                gradient = context.createLinearGradient(0, line_y, 0, line_y + fontsize);
-              }
-              gradient.addColorStop(0, color);
-              gradient.addColorStop(1, gcolor);
-              context.fillStyle = gradient;
-            }
-
-            context.fillText(line, x, line_y);
-            if (drawOutline) {
-              context.strokeText(line, x, line_y);
-            }
-
-            i++;
+          context.fillText(line, x, lineY);
+          if (drawOutline) {
+            context.strokeText(line, x, lineY);
           }
+
+          lineY += lineSize;
         }
         context.restore();
       }
@@ -2423,6 +2443,7 @@ const screen = (function () {
       hasDraw = (typeof window.draw === 'function');
       hasUpdate = (typeof window.update === 'function');
 
+      // Draw the play button
       let x = Math.floor(width / 2),
           y = Math.floor(height / 2);
       screen.clear();
