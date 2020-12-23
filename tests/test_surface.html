@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test the Surface class</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test the Surface class</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<script>
+var WIDTH = 200;
+HEIGHT = 100;
+
+const context = document.querySelector('#screen').getContext('2d');
+
+function test_sanity() {
+  let imageData = context.createImageData(8, 4);
+  test.assertEqual(imageData.width, 8);
+  test.assertEqual(imageData.height, 4);
+  for (let i = 0; i < 128; i++) {
+    test.assertEqual(imageData.data[i], 0);
+    imageData.data[i] = i;
+    test.assertEqual(imageData.data[i], i);
+  }
+
+  let another = context.createImageData(imageData);
+  test.assertEqual(another.width, 8);
+  test.assertEqual(another.height, 4);
+  for (let i = 0; i < 128; i++) {
+    test.assertEqual(another.data[i], 0);
+    another.data[i] = 127 - i;
+    test.assertEqual(another.data[i], 127 - i);
+  }
+
+  test.assertEqual(imageData.width, 8);
+  test.assertEqual(imageData.height, 4);
+  for (let i = 0; i < 128; i++) {
+    test.assertEqual(imageData.data[i], i);
+    imageData.data[i] = 0;
+    test.assertEqual(imageData.data[i], 0);
+  }
+}
+
+function test_surface() {
+  let imageData = context.createImageData(8, 4),
+      s = new Surface(imageData);
+  test.assertEqual(s.width, 8);
+  test.assertEqual(s.height, 4);
+
+  try {
+    s = new Surface();
+    console.assert(false, 'Error not raised.');
+  }
+  catch (error) {
+    test.assertTrue(error instanceof TypeError);
+  }
+  try {
+    s = new Surface('foobar');
+    console.assert(false, 'Error not raised.');
+  }
+  catch (error) {
+    test.assertTrue(error instanceof TypeError);
+  }
+}
+
+function test_coordinatesToIndex() {
+  let imageData = context.createImageData(8, 4),
+      s = new Surface(imageData),
+      expected = 0;
+  for (let y = 0; y < s.height; y++) {
+    for (let x = 0; x < s.width; x++) {
+      test.assertEqual(s._coordinatesToIndex(x, y), expected);
+      expected += 4;
+    }
+  }
+}
+
+function test_getAt() {
+  let imageData = context.createImageData(8, 4),
+      s = new Surface(imageData);
+  for (let y = -1; y <= s.height; y++) {
+    for (let x = -1; x <= s.width; x++) {
+      test.assertEqual(s.getAt(x, y), [0, 0, 0, 0]);
+    }
+  }
+  for (let i = 0; i < 128; i++) {
+    imageData.data[i] = i;
+  }
+  s = new Surface(imageData);
+  for (let [x, y, expected] of [
+    [-1, -1, [0, 0, 0, 0]],
+    [-1, 0, [0, 0, 0, 0]],
+    [0, -1, [0, 0, 0, 0]],
+    [0, 0, [0, 1, 2, 3]],
+    [s.width, s.height, [0, 0, 0, 0]],
+    [s.width, 0, [0, 0, 0, 0]],
+    [0, s.height, [0, 0, 0, 0]],
+    [s.width - 1, s.height - 1, [124, 125, 126, 127]]]) {
+    test.assertEqual(s.getAt(x, y), expected);
+  }
+  let expected = [0, 1, 2, 3];
+  for (let y = 0; y < s.height; y++) {
+    for (let x = 0; x < s.width; x++) {
+      test.assertEqual(s.getAt(x, y), expected);
+      for (let i = 0; i < expected.length; i++) {
+        expected[i] += 4;
+      }
+    }
+  }
+}
+
+function test_setAt() {
+  let imageData = context.createImageData(8, 4),
+      s = new Surface(imageData),
+      color = [0, 1, 2, 3];
+
+  for (let [x, y] of [
+    [-1, -1],
+    [-1, 0],
+    [0, -1],
+    [s.width, s.height],
+    [s.width, 0],
+    [0, s.height]]) {
+    s.setAt(x, y, [255, 255, 255, 255]);
+  }
+
+  for (let y = 0; y < s.height; y++) {
+    for (let x = 0; x < s.width; x++) {
+      test.assertEqual(s.getAt(x, y), [0, 0, 0, 0]);
+      s.setAt(x, y, color);
+      for (let i = 0; i < color.length; i++) {
+        color[i] += 4;
+      }
+    }
+  }
+  for (let i = 0; i < 128; i++) {
+    test.assertEqual(imageData.data[i], i);
+  }
+
+  let expected = [0, 1, 2, 3];
+  for (let y = 0; y < s.height; y++) {
+    let color = new Array(y).fill(0);
+    for (let x = 0; x < s.width; x++) {
+      test.assertEqual(s.getAt(x, y), expected);
+      s.setAt(x, y, color);
+      test.assertEqual(s.getAt(x, y), [0, 0, 0, 0]);
+      for (let i = 0; i < expected.length; i++) {
+        expected[i] += 4;
+      }
+    }
+  }
+  for (let i = 0; i < 128; i++) {
+    test.assertEqual(imageData.data[i], 0);
+  }
+}
+
+function test_getSurface() {
+  const halfWidth = Math.floor(WIDTH / 2);
+
+  screen.set_mode('#screen', '#reset', '#pause');
+  screen.fill('red');
+  let s = screen.getSurface();
+  test.assertEqual(s.width, WIDTH);
+  test.assertEqual(s.height, HEIGHT);
+  for (let y = 0; y < s.height; y++) {
+    for (let x = 0; x < s.width; x++) {
+      test.assertEqual(s.getAt(x, y), [255, 0, 0, 255]);
+      s.setAt(x, y, [0, 255, 0, 255]);
+      test.assertEqual(s.getAt(x, y), [0, 255, 0, 255]);
+    }
+  }
+  screen.blit(s, [0, 0]);
+
+  s = screen.getSurface(halfWidth, HEIGHT);
+  test.assertEqual(s.width, halfWidth);
+  test.assertEqual(s.height, HEIGHT);
+  for (let y = 0; y < s.height; y++) {
+    for (let x = 0; x < s.width; x++) {
+      test.assertEqual(s.getAt(x, y), [0, 255, 0, 255]);
+      s.setAt(x, y, [0, 0, 255, 255]);
+      test.assertEqual(s.getAt(x, y), [0, 0, 255, 255]);
+    }
+  }
+  screen.blit(s, [halfWidth, 0]);
+
+  for (let [surface, expected] of [
+    [screen.getSurface(1, 1), [0, 255, 0, 255]],
+    [screen.getSurface(0, 0, 1, 1), [0, 255, 0, 255]],
+    [screen.getSurface(0, HEIGHT - 1, 1, 1), [0, 255, 0, 255]],
+    [screen.getSurface(halfWidth - 1, 0, 1, 1), [0, 255, 0, 255]],
+    [screen.getSurface(halfWidth - 1, HEIGHT - 1, 1, 1), [0, 255, 0, 255]],
+    [screen.getSurface(halfWidth, 0, 1, 1), [0, 0, 255, 255]],
+    [screen.getSurface(halfWidth, HEIGHT - 1, 1, 1), [0, 0, 255, 255]],
+    [screen.getSurface(WIDTH - 1, 0, 1, 1), [0, 0, 255, 255]],
+    [screen.getSurface(WIDTH - 1, HEIGHT - 1, 1, 1), [0, 0, 255, 255]]]) {
+    test.assertEqual(surface.width, 1);
+    test.assertEqual(surface.height, 1);
+    test.assertEqual(surface.getAt(), expected);
+    test.assertEqual(surface.getAt(0), expected);
+    test.assertEqual(surface.getAt(0, 0), expected);
+    test.assertEqual(surface.getAt(0, 0, 0), expected);
+  }
+
+  s = screen.getSurface(0, 0, WIDTH, HEIGHT);
+  test.assertEqual(s.width, WIDTH);
+  test.assertEqual(s.height, HEIGHT);
+  for (let y = 0; y < s.height; y++) {
+    let color = new Array(y).fill(0);
+    for (let x = 0; x < s.width; x++) {
+      if (x < halfWidth) {
+        test.assertEqual(s.getAt(x, y), [0, 255, 0, 255]);
+      }
+      else {
+        test.assertEqual(s.getAt(x, y), [0, 0, 255, 255]);
+      }
+      s.setAt(x, y, color);
+      test.assertEqual(s.getAt(x, y), [0, 0, 0, 0]);
+    }
+  }
+  screen.blit(s, [0, 0]);
+}
+
+test.main();
+</script>
+</body>
+
+</html>
