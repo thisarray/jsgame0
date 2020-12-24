@@ -2389,6 +2389,12 @@ const screen = (function () {
         context.drawImage(image, 0, 0);
         context.restore();
       }
+      else if (object instanceof Surface) {
+        let [x=0, y=0] = pos;
+        context.save();
+        context.putImageData(object.imageData, x, y);
+        context.restore();
+      }
       else if (typeof object === 'string') {
         if (!(object in images)) {
           throw new RangeError(`Unknown image "${ object }".`);
@@ -2525,6 +2531,135 @@ const screen = (function () {
         canvas.removeEventListener('mouseup', mouseup);
         canvas.removeEventListener('mousemove', mousemove);
       }
+    },
+
+    /*
+     * Return a Surface object containing the underlying pixel data of the screen from (x, y) to (x + width, y + height).
+     *
+     * If only 2 arguments are supplied, then they are used for width and height and (x, y) is assumed to be (0, 0).
+     */
+    getSurface() {
+      if (context == null) {
+        return;
+      }
+
+      let x = 0, y = 0, w = width, h = height;
+      if (arguments.length < 4) {
+        [w=width, h=height] = arguments;
+      }
+      else {
+        [x=0, y=0, w=width, h=height] = arguments;
+      }
+      return new Surface(context.getImageData(x, y, w, h));
     }
   }
 })();
+
+/*
+ * Non-standard components
+ */
+
+/*
+ * Wrapper around an ImageData object to support scripts that rely on pixel manipulation.
+ *
+ * There is no pixel array or screen buffer to which you can write in JavaScript.
+ * The closest thing is drawing to and then getting the pixels for a portion of the screen.
+ * This class is a compromise to enable pixel manipulation through this mechanism.
+ * As a result, it has a very limited set of methods.
+ * If possible, you should think of more standard ways to achieve the same result.
+ */
+class Surface {
+  constructor(imageData) {
+    if (!(imageData instanceof ImageData)) {
+      throw new TypeError('imageData must be an ImageData.');
+    }
+    this.imageData = imageData;
+  }
+
+  /*
+   * Return the starting index of the pixel data for coordinates (x, y).
+   */
+  _coordinatesToIndex(x, y) {
+    return (x + (y * this.imageData.width)) * 4;
+  }
+
+  get width() {
+    return this.imageData.width;
+  }
+  get height() {
+    return this.imageData.height;
+  }
+
+  /*
+   * Return an Array containing the RGBA components of the color at coordinates (x, y).
+   */
+  getAt(x = 0, y = 0) {
+    if (typeof x !== 'number') {
+      throw new TypeError('x must be a number.');
+    }
+    if (typeof y !== 'number') {
+      throw new TypeError('y must be a number.');
+    }
+
+    if (x < 0) {
+      return [0, 0, 0, 0];
+    }
+    if (y < 0) {
+      return [0, 0, 0, 0];
+    }
+    if (this.imageData.width <= x) {
+      return [0, 0, 0, 0];
+    }
+    if (this.imageData.height <= y) {
+      return [0, 0, 0, 0];
+    }
+
+    let start = this._coordinatesToIndex(x, y),
+        color = [];
+    for (let i = 0; i < 4; i++) {
+      color.push(this.imageData.data[start + i]);
+    }
+    return color;
+  }
+
+  /*
+   * Set the color at coordinates (x, y) to the RGBA components in the Array color.
+   */
+  setAt(x, y, color) {
+    if (typeof x !== 'number') {
+      throw new TypeError('x must be a number.');
+    }
+    if (typeof y !== 'number') {
+      throw new TypeError('y must be a number.');
+    }
+    if (!Array.isArray(color)) {
+      throw new TypeError('color must be an Array of length 3 or 4.');
+    }
+
+    if (x < 0) {
+      return;
+    }
+    if (y < 0) {
+      return;
+    }
+    if (this.imageData.width <= x) {
+      return;
+    }
+    if (this.imageData.height <= y) {
+      return;
+    }
+
+    let start = this._coordinatesToIndex(x, y),
+        c;
+    for (let i = 0; i < 4; i++) {
+      // Gracefully handle color being shorter than expected
+      if (i < color.length) {
+        c = color[i];
+      }
+      else {
+        c = 0;
+      }
+      this.imageData.data[start + i] = c;
+    }
+  }
+}
