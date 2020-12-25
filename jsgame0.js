@@ -2328,6 +2328,17 @@ const screen = (function () {
           lineY += lineSize;
         }
         context.restore();
+      },
+
+      /*
+       * Draw the play button.
+       */
+      playButton() {
+        let x = Math.floor(width / 2),
+            y = Math.floor(height / 2);
+        screen.clear();
+        screen.draw.filled_circle([x, y], 25, 'white');
+        screen.draw.filled_polygon([[x + 11, y], [x - 6, y - 10], [x - 6, y + 10]], 'black');
       }
     },
 
@@ -2449,12 +2460,7 @@ const screen = (function () {
       hasDraw = (typeof window.draw === 'function');
       hasUpdate = (typeof window.update === 'function');
 
-      // Draw the play button
-      let x = Math.floor(width / 2),
-          y = Math.floor(height / 2);
-      screen.clear();
-      screen.draw.filled_circle([x, y], 25, 'white');
-      screen.draw.filled_polygon([[x + 11, y], [x - 6, y - 10], [x - 6, y + 10]], 'black');
+      // Add listeners to the HTML user interface controls
       canvas.addEventListener('click', clickStart);
 
       const reset = document.querySelector(resetID),
@@ -2484,6 +2490,8 @@ const screen = (function () {
           }
         });
       }
+
+      screen.draw.playButton();
     },
 
     go() {
@@ -2569,6 +2577,28 @@ const screen = (function () {
  * If possible, you should think of more standard ways to achieve the same result.
  */
 class Surface {
+  /*
+   * Return true if the numbers in the Arrays first and second are equal.
+   */
+  static isColorEqual(first, second) {
+    if (Array.isArray(first) && Array.isArray(second)) {
+      let length = Math.min(first.length, second.length);
+      for (let i = 0; i < length; i++) {
+        if (typeof first[i] !== 'number') {
+          return false;
+        }
+        if (typeof second[i] !== 'number') {
+          return false;
+        }
+        if (first[i] !== second[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   constructor(imageData) {
     if (!(imageData instanceof ImageData)) {
       throw new TypeError('imageData must be an ImageData.');
