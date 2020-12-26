@@ -24,8 +24,9 @@ SOUND_EXTENSION_SET = frozenset([
     '.oga', '.ogg', '.wav', '.webm'])
 """frozenset of accepted file extensions for sounds."""
 
-TRICKY_GLOBALS = ['Actor', 'images', 'sounds', 'keyboard', 'font']
-"""List of string global objects that are tricky for porting."""
+TRICKY_CASES = ['Actor', 'images', 'sounds', 'keyboard', 'font',
+                '.image', '.x', '.y']
+"""List of string gotchas that are tricky for porting."""
 
 HTML_TO_FONT = """\
 <!DOCTYPE html>
@@ -208,7 +209,7 @@ def print_javascript(lines):
     """
     counter = collections.Counter()
     for line in lines:
-        for o in TRICKY_GLOBALS:
+        for o in TRICKY_CASES:
             if o in line:
                 counter[o] += 1
 
@@ -217,7 +218,7 @@ def print_javascript(lines):
 /*
  * Summary
  * ---''')
-    for o in TRICKY_GLOBALS:
+    for o in TRICKY_CASES:
         print(' * {}: {}'.format(o, counter[o]))
     print(' */')
 
@@ -294,6 +295,8 @@ class _UnitTest(unittest.TestCase):
                 self.assertTrue(e.startswith('.'))
                 self.assertGreater(len(e), 2)
                 self.assertEqual(e, e.strip().lower())
+        for value in TRICKY_CASES:
+            self.assertGreater(len(value), 1)
 
     def test_is_valid(self):
         """Test if a name is valid for Pygame Zero."""
@@ -320,7 +323,7 @@ class _UnitTest(unittest.TestCase):
             self.assertIn('jsgame0.js', result)
             self.assertIn('jsgame0.py', result)
         for accepted in [FONT_EXTENSION_SET, IMAGE_EXTENSION_SET,
-                         SOUND_EXTENSION_SET, ('.html', '.txt'), ['.txt']]:
+                         SOUND_EXTENSION_SET, ('.html', '.rst'), ['.rst']]:
             self.assertEqual(list_directory('.', accepted), [])
 
 if __name__ == '__main__':

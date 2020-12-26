@@ -174,6 +174,97 @@ function test_setAt() {
   }
 }
 
+function test_isColorEqual() {
+  test.assertFalse(Surface.isColorEqual(42, [0]));
+  test.assertFalse(Surface.isColorEqual([0], 'foobar'));
+
+  test.assertFalse(Surface.isColorEqual([], []));
+  test.assertFalse(Surface.isColorEqual([], [0]));
+  test.assertFalse(Surface.isColorEqual([], [0, 0]));
+  test.assertFalse(Surface.isColorEqual([], [0, 0, 0]));
+  test.assertFalse(Surface.isColorEqual([], [0, 0, 0, 0]));
+  test.assertFalse(Surface.isColorEqual([0], []));
+  test.assertFalse(Surface.isColorEqual([0, 0], []));
+  test.assertFalse(Surface.isColorEqual([0, 0, 0], []));
+  test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], []));
+
+  test.assertTrue(Surface.isColorEqual([0], [0]));
+  test.assertTrue(Surface.isColorEqual([0, 0], [0, 0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0], [0, 0, 0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0, 0], [0, 0, 0, 0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0, 0], [0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0, 0], [0, 0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0, 0], [0, 0, 0]));
+  test.assertTrue(Surface.isColorEqual([0], [0, 0, 0, 0]));
+  test.assertTrue(Surface.isColorEqual([0, 0], [0, 0, 0, 0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0], [0, 0, 0, 0]));
+
+  test.assertFalse(Surface.isColorEqual([0, 1], ['foo', 'bar']));
+  test.assertFalse(Surface.isColorEqual(['foo', 'bar'], [0, 1]));
+  test.assertFalse(Surface.isColorEqual([0, 1, 2], ['foo', 'bar']));
+  test.assertFalse(Surface.isColorEqual(['foo', 'bar'], [0, 1, 2]));
+  test.assertFalse(Surface.isColorEqual([0, 0, 0], ['foo', 'bar', 'baz']));
+  test.assertFalse(Surface.isColorEqual(['foo', 'bar', 'baz'], [0, 0, 0]));
+  test.assertFalse(Surface.isColorEqual(['foo', 1, 2], ['foo', 1, 2]));
+  test.assertFalse(Surface.isColorEqual([0, 'bar', 2], [0, 'bar', 2]));
+  test.assertFalse(Surface.isColorEqual([0, 1, 'baz'], [0, 1, 'baz']));
+  test.assertTrue(Surface.isColorEqual([0, 'foo'], [0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 'foo'], [0, 0]));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0, 'foo'], [0, 0, 0]));
+  test.assertTrue(Surface.isColorEqual([0], [0, 'foo']));
+  test.assertTrue(Surface.isColorEqual([0, 0], [0, 0, 'foo']));
+  test.assertTrue(Surface.isColorEqual([0, 0, 0], [0, 0, 0, 'foo']));
+
+  for (let i = 1; i < 256; i++) {
+    test.assertTrue(Surface.isColorEqual([i], [i]));
+    test.assertTrue(Surface.isColorEqual([i, 0], [i, 0]));
+    test.assertTrue(Surface.isColorEqual([0, i], [0, i]));
+    test.assertTrue(Surface.isColorEqual([0, i, 0], [0, i, 0]));
+    test.assertTrue(Surface.isColorEqual([0, i, 0, i], [0, i, 0, i]));
+    test.assertTrue(Surface.isColorEqual([i, 0, i, 0], [i, 0, i, 0]));
+    test.assertTrue(Surface.isColorEqual([i, 0, 0, 0], [i]));
+    test.assertTrue(Surface.isColorEqual([i, 0, 0, 0], [i, 0]));
+    test.assertTrue(Surface.isColorEqual([i, 0, 0, 0], [i, 0, 0]));
+    test.assertTrue(Surface.isColorEqual([i], [i, 0, 0, 0]));
+    test.assertTrue(Surface.isColorEqual([i, 0], [i, 0, 0, 0]));
+    test.assertTrue(Surface.isColorEqual([i, 0, 0], [i, 0, 0, 0]));
+
+    test.assertFalse(Surface.isColorEqual([0, 0, 0], [i, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0], [0, i, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0], [0, 0, i]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0], [i, i, i]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0], [0, i, i]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], [i, 0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], [0, i, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], [0, 0, i, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], [0, 0, 0, i]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], [i, i, i, i]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], [0, i, i, i]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, 0], [0, 0, i, i]));
+
+    test.assertFalse(Surface.isColorEqual([i, 0, 0], [0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, i, 0], [0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, i], [0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([i, i, i], [0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, i, i], [0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([i, 0, 0, 0], [0, 0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, i, 0, 0], [0, 0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, i, 0], [0, 0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, 0, i], [0, 0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([i, i, i, i], [0, 0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, i, i, i], [0, 0, 0, 0]));
+    test.assertFalse(Surface.isColorEqual([0, 0, i, i], [0, 0, 0, 0]));
+
+    test.assertFalse(Surface.isColorEqual([0], [i]));
+    test.assertFalse(Surface.isColorEqual([0, 0], [0, i]));
+    test.assertFalse(Surface.isColorEqual([0, 0], [i, i]));
+    test.assertFalse(Surface.isColorEqual([i], [0]));
+    test.assertFalse(Surface.isColorEqual([0, i], [0, 0]));
+    test.assertFalse(Surface.isColorEqual([i, i], [0, 0]));
+    test.assertFalse(Surface.isColorEqual([i, 0], [0, 0]));
+  }
+}
+
 function test_getSurface() {
   const halfWidth = Math.floor(WIDTH / 2);
 
