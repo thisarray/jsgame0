@@ -897,8 +897,7 @@ class Rect {
     this.y = centery - Math.floor(this.height / 2);
   }
   get topleft() {
-    let tuple = [this.x, this.y];
-    return tuple;
+    return [this.x, this.y];
   }
   set topleft(topleft) {
     let [x=0, y=0] = topleft;
@@ -906,8 +905,7 @@ class Rect {
     this.y = y;
   }
   get topright() {
-    let tuple = [this.x + this.width, this.y];
-    return tuple;
+    return [this.x + this.width, this.y];
   }
   set topright(topright) {
     let [x=0, y=0] = topright;
@@ -915,8 +913,7 @@ class Rect {
     this.y = y;
   }
   get bottomleft() {
-    let tuple = [this.x, this.y + this.height];
-    return tuple;
+    return [this.x, this.y + this.height];
   }
   set bottomleft(bottomleft) {
     let [x=0, y=0] = bottomleft;
@@ -924,8 +921,7 @@ class Rect {
     this.y = y - this.height;
   }
   get bottomright() {
-    let tuple = [this.x + this.width, this.y + this.height];
-    return tuple;
+    return [this.x + this.width, this.y + this.height];
   }
   set bottomright(bottomright) {
     let [x=0, y=0] = bottomright;
@@ -933,8 +929,7 @@ class Rect {
     this.y = y - this.height;
   }
   get midtop() {
-    let tuple = [this.x + Math.floor(this.width / 2), this.y];
-    return tuple;
+    return [this.x + Math.floor(this.width / 2), this.y];
   }
   set midtop(midtop) {
     let [x=0, y=0] = midtop;
@@ -942,8 +937,7 @@ class Rect {
     this.y = y;
   }
   get midleft() {
-    let tuple = [this.x, this.y + Math.floor(this.height / 2)];
-    return tuple;
+    return [this.x, this.y + Math.floor(this.height / 2)];
   }
   set midleft(midleft) {
     let [x=0, y=0] = midleft;
@@ -951,8 +945,7 @@ class Rect {
     this.y = y - Math.floor(this.height / 2);
   }
   get midbottom() {
-    let tuple = [this.x + Math.floor(this.width / 2), this.y + this.height];
-    return tuple;
+    return [this.x + Math.floor(this.width / 2), this.y + this.height];
   }
   set midbottom(midbottom) {
     let [x=0, y=0] = midbottom;
@@ -960,8 +953,7 @@ class Rect {
     this.y = y - this.height;
   }
   get midright() {
-    let tuple = [this.x + this.width, this.y + Math.floor(this.height / 2)];
-    return tuple;
+    return [this.x + this.width, this.y + Math.floor(this.height / 2)];
   }
   set midright(midright) {
     let [x=0, y=0] = midright;
@@ -969,8 +961,7 @@ class Rect {
     this.y = y - Math.floor(this.height / 2);
   }
   get center() {
-    let tuple = [this.x + Math.floor(this.width / 2), this.y + Math.floor(this.height / 2)];
-    return tuple;
+    return [this.x + Math.floor(this.width / 2), this.y + Math.floor(this.height / 2)];
   }
   set center(center) {
     let [x=0, y=0] = center;
@@ -978,8 +969,7 @@ class Rect {
     this.y = y - Math.floor(this.height / 2);
   }
   get size() {
-    let tuple = [this.width, this.height];
-    return tuple;
+    return [this.width, this.height];
   }
   set size(size) {
     let [w=0, h=0] = size;
@@ -1263,14 +1253,12 @@ Rect.prototype.toString = function () {
 
 /*
  * The Actor class differs from that in Pygame Zero because x and y are not aliases for pos.
- * I found the Pygame Zero implementation confusing and complicating everything.
- * Here x and y always refer to the topleft corner of the Actor.
- * If you want to change the location of the anchor, then use pos.
+ * I found that decision in the Pygame Zero implementation confusing.
+ * Here x and y always refer to the topleft corner of an Actor like a Rect.
+ * If you want to change the location of the anchor, then use posx, posy, or pos.
  *
  * In addition, the name of the image is stored in the "name" attribute and not the "image" attribute.
  * "image" is too confusing when there are actual image Surfaces, too.
- *
- * There is no opacity attribute.
  */
 class Actor {
   constructor(name) {
@@ -1290,6 +1278,7 @@ class Actor {
     this.anchor_dy = Math.floor(image.height / 2);
 
     this.angle = 0;
+    this.opacity = 1.0;
   }
 
   get x() {
@@ -1312,8 +1301,7 @@ class Actor {
   }
 
   get anchor() {
-    let tuple = [this.anchor_dx, this.anchor_dy];
-    return tuple;
+    return [this.anchor_dx, this.anchor_dy];
   }
 
   /*
@@ -1428,13 +1416,24 @@ class Actor {
     throw new TypeError('Unrecognized anchor type.');
   }
   get pos() {
-    let tuple = [this.x + this.anchor_dx, this.y + this.anchor_dy];
-    return tuple;
+    return [this.x + this.anchor_dx, this.y + this.anchor_dy];
   }
   set pos(pos) {
     let [x=0, y=0] = pos;
     this.x = x - this.anchor_dx;
     this.y = y - this.anchor_dy;
+  }
+  get posx() {
+    return this.x + this.anchor_dx;
+  }
+  set posx(posx) {
+    this.x = posx - this.anchor_dx;
+  }
+  get posy() {
+    return this.y + this.anchor_dy;
+  }
+  set posy(posy) {
+    this.y = posy - this.anchor_dy;
   }
 
   /*
@@ -1477,8 +1476,7 @@ class Actor {
     this.y = centery - Math.floor(this.height / 2);
   }
   get topleft() {
-    let tuple = [this.x, this.y];
-    return tuple;
+    return [this.x, this.y];
   }
   set topleft(topleft) {
     let [x=0, y=0] = topleft;
@@ -1486,8 +1484,7 @@ class Actor {
     this.y = y;
   }
   get topright() {
-    let tuple = [this.x + this.width, this.y];
-    return tuple;
+    return [this.x + this.width, this.y];
   }
   set topright(topright) {
     let [x=0, y=0] = topright;
@@ -1495,8 +1492,7 @@ class Actor {
     this.y = y;
   }
   get bottomleft() {
-    let tuple = [this.x, this.y + this.height];
-    return tuple;
+    return [this.x, this.y + this.height];
   }
   set bottomleft(bottomleft) {
     let [x=0, y=0] = bottomleft;
@@ -1504,8 +1500,7 @@ class Actor {
     this.y = y - this.height;
   }
   get bottomright() {
-    let tuple = [this.x + this.width, this.y + this.height];
-    return tuple;
+    return [this.x + this.width, this.y + this.height];
   }
   set bottomright(bottomright) {
     let [x=0, y=0] = bottomright;
@@ -1513,8 +1508,7 @@ class Actor {
     this.y = y - this.height;
   }
   get midtop() {
-    let tuple = [this.x + Math.floor(this.width / 2), this.y];
-    return tuple;
+    return [this.x + Math.floor(this.width / 2), this.y];
   }
   set midtop(midtop) {
     let [x=0, y=0] = midtop;
@@ -1522,8 +1516,7 @@ class Actor {
     this.y = y;
   }
   get midleft() {
-    let tuple = [this.x, this.y + Math.floor(this.height / 2)];
-    return tuple;
+    return [this.x, this.y + Math.floor(this.height / 2)];
   }
   set midleft(midleft) {
     let [x=0, y=0] = midleft;
@@ -1531,8 +1524,7 @@ class Actor {
     this.y = y - Math.floor(this.height / 2);
   }
   get midbottom() {
-    let tuple = [this.x + Math.floor(this.width / 2), this.y + this.height];
-    return tuple;
+    return [this.x + Math.floor(this.width / 2), this.y + this.height];
   }
   set midbottom(midbottom) {
     let [x=0, y=0] = midbottom;
@@ -1540,8 +1532,7 @@ class Actor {
     this.y = y - this.height;
   }
   get midright() {
-    let tuple = [this.x + this.width, this.y + Math.floor(this.height / 2)];
-    return tuple;
+    return [this.x + this.width, this.y + Math.floor(this.height / 2)];
   }
   set midright(midright) {
     let [x=0, y=0] = midright;
@@ -1549,8 +1540,7 @@ class Actor {
     this.y = y - Math.floor(this.height / 2);
   }
   get center() {
-    let tuple = [this.x + Math.floor(this.width / 2), this.y + Math.floor(this.height / 2)];
-    return tuple;
+    return [this.x + Math.floor(this.width / 2), this.y + Math.floor(this.height / 2)];
   }
   set center(center) {
     let [x=0, y=0] = center;
@@ -1558,8 +1548,7 @@ class Actor {
     this.y = y - Math.floor(this.height / 2);
   }
   get size() {
-    let tuple = [this.width, this.height];
-    return tuple;
+    return [this.width, this.height];
   }
   contains() {
     let rect = new Rect(...arguments);
@@ -2391,6 +2380,9 @@ const screen = (function () {
         let image = images[object.name],
             [x=0, y=0] = object.anchor;
         context.save();
+        if (typeof object.opacity === 'number') {
+          context.globalAlpha = Math.max(Math.min(object.opacity, 1), 0);
+        }
         // Move the origin to the anchor so we can rotate
         context.translate(...object.pos);
         // Canvas rotates clockwise but Pygame Zero rotates counterclockwise (anticlockwise)
@@ -2582,7 +2574,10 @@ class Surface {
    */
   static isColorEqual(first, second) {
     if (Array.isArray(first) && Array.isArray(second)) {
-      let length = Math.min(first.length, second.length);
+      const length = Math.min(first.length, second.length);
+      if (length <= 0) {
+        return false;
+      }
       for (let i = 0; i < length; i++) {
         if (typeof first[i] !== 'number') {
           return false;
