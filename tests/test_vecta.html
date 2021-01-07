@@ -101,6 +101,7 @@ function test_add() {
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x + v2.x);
   test.assertEqual(v3.y, v1.y + v2.y);
+  test.assertRaises(Error, v1.add.bind(v1));
 }
 
 function test_subtract() {
@@ -120,6 +121,7 @@ function test_subtract() {
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x - v2.x);
   test.assertEqual(v3.y, v1.y - v2.y);
+  test.assertRaises(Error, v1.subtract.bind(v1));
 }
 
 function test_scalarMultiply() {
@@ -131,6 +133,8 @@ function test_scalarMultiply() {
   test.assertTrue(v instanceof Vecta);
   test.assertEqual(v.x, v1.x * 7.8);
   test.assertEqual(v.y, v1.y * 7.8);
+  test.assertRaises(Error, v1.multiply.bind(v1));
+  test.assertRaises(Error, v1.multiply.bind(v1), 'foobar');
 }
 
 function test_scalarDivide() {
@@ -142,6 +146,7 @@ function test_scalarDivide() {
   test.assertTrue(v instanceof Vecta);
   test.assertEqual(v.x, v1.x / 7.8);
   test.assertEqual(v.y, v1.y / 7.8);
+  test.assertRaises(TypeError, v1.divide.bind(v1), 'foobar');
 }
 
 function test_isEqual() {
@@ -165,6 +170,8 @@ function test_isEqual() {
   test.assertTrue(fltVec.isEqual({x: 3, y: -2}));
   test.assertTrue(fltVec.isEqual({x: 3.0, y: -2.0}));
   test.assertFalse(fltVec.isEqual({x: 0, y: 0}));
+
+  test.assertRaises(Error, intVec.isEqual.bind(intVec));
 }
 
 function test_toString() {
@@ -286,6 +293,7 @@ function test_cross() {
   test.assertEqual(v1.cross(t2), expected);
   test.assertEqual(v1.cross(v2), -v2.cross(v1));
   test.assertEqual(v1.cross(v1), 0);
+  test.assertRaises(Error, v1.cross.bind(v1));
 }
 
 function test_dot() {
@@ -297,6 +305,7 @@ function test_dot() {
   test.assertEqual(v1.dot(v2), v1.multiply(v2));
   test.assertEqual(v1.multiply(v2), expected);
   test.assertEqual(v2.multiply(v1), expected);
+  test.assertRaises(Error, v1.dot.bind(v1));
 }
 
 function test_angle_to() {
@@ -307,6 +316,7 @@ function test_angle_to() {
   test.assertEqual((new Vecta(1, 0)).angle_to(new Vecta(0, -1)), -90);
   test.assertEqual((new Vecta(1, 0)).angle_to(new Vecta(-1, 1)), 135);
   test.assertEqual(Math.abs((new Vecta(1, 0)).angle_to(new Vecta(-1, 0))), 180);
+  test.assertRaises(Error, v1.angle_to.bind(v1));
 }
 
 function test_scale_to_length() {
@@ -338,6 +348,7 @@ function test_reflect() {
   test.assertEqual(v.reflect(new Vecta(0, 3)), v.reflect(n));
   test.assertTrue(a.isEqual([-1, 1]));
   test.assertRaises(RangeError, v.reflect.bind(v), zeroVec);
+  test.assertRaises(Error, v.reflect.bind(v));
 }
 
 function test_reflect_ip() {
@@ -353,6 +364,7 @@ function test_reflect_ip() {
   v2.reflect_ip(new Vecta(-1, 1));
   test.assertTrue(v2.isEqual([-1, 1]));
   test.assertRaises(RangeError, v2.reflect_ip.bind(v2), zeroVec);
+  test.assertRaises(Error, v2.reflect_ip.bind(v2));
 }
 
 function test_distance_to() {
@@ -361,6 +373,7 @@ function test_distance_to() {
   test.assertEqual(v1.distance_to(v2), Math.sqrt((diff.x * diff.x) + (diff.y * diff.y)));
   test.assertEqual(v1.distance_to(v1), 0);
   test.assertEqual(v1.distance_to(v2), v2.distance_to(v1));
+  test.assertRaises(Error, v1.distance_to.bind(v1));
 }
 
 function test_distance_squared_to() {
@@ -369,6 +382,7 @@ function test_distance_squared_to() {
   test.assertEqual(v1.distance_squared_to(v2), (diff.x * diff.x) + (diff.y * diff.y));
   test.assertEqual(v1.distance_squared_to(v1), 0);
   test.assertEqual(v1.distance_squared_to(v2), v2.distance_squared_to(v1));
+  test.assertRaises(Error, v1.distance_squared_to.bind(v1));
 }
 
 function test_update() {
@@ -383,6 +397,7 @@ function test_update() {
   test.assertEqual(v, new Vecta(3, 4));
   v.update(v1);
   test.assertEqual(v, v1);
+  test.assertRaises(Error, v1.update.bind(v1));
 }
 
 test.main();
