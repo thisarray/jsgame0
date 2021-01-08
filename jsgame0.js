@@ -1616,7 +1616,7 @@ class Actor {
     dx = x - ax;
     // The y-axis is inverted in graphics (positive goes down)
     dy = ay - y;
-    tuple.push(Math.sqrt((dx * dx) + (dy * dy)), Math.atan2(dy, dx) * 180 / Math.PI);
+    tuple.push(Math.hypot(dx, dy), Math.atan2(dy, dx) * 180 / Math.PI);
     return tuple;
   }
 
@@ -1922,11 +1922,18 @@ const screen = (function () {
       }
     }
     else {
-      let [r=0, g=0, b=0] = color;
+      let [r=0, g=0, b=0, a=MAX_COLOR] = color;
       r = Math.max(Math.min(r, MAX_COLOR), 0);
       g = Math.max(Math.min(g, MAX_COLOR), 0);
       b = Math.max(Math.min(b, MAX_COLOR), 0);
-      return `rgb(${ r }, ${ g }, ${ b })`;
+      a = Math.max(Math.min(a, MAX_COLOR), 0);
+      if (a === MAX_COLOR) {
+        return `rgb(${ r }, ${ g }, ${ b })`;
+      }
+      else {
+        // alpha component of rgba has to be between 0 and 1, inclusive
+        return `rgba(${ r }, ${ g }, ${ b }, ${ a / MAX_COLOR })`;
+      }
     }
   }
 
@@ -2266,6 +2273,9 @@ const screen = (function () {
           }
         }
 
+        if (('alpha' in config) && (typeof config['alpha'] === 'number')) {
+          context.globalAlpha = Math.max(Math.min(config['alpha'], 1), 0);
+        }
         if ('color' in config) {
           color = parseColor(config['color']);
         }
@@ -2341,12 +2351,12 @@ const screen = (function () {
     /*
      * Clear the screen to black.
      */
-    clear() {
+    clear(color = 'black') {
       if (context == null) {
         return;
       }
       context.clearRect(0, 0, width, height);
-      this.fill('black');
+      this.fill(color);
     },
 
     /*
@@ -2642,7 +2652,7 @@ class Surface {
     let start = this._coordinatesToIndex(x, y),
         color = [];
     for (let i = 0; i < 4; i++) {
-      color.push(this.imageData.data[start + i]);
+      color.push(this.imageData.data[start+i]);
     }
     return color;
   }
@@ -2684,7 +2694,7 @@ class Surface {
       else {
         c = 0;
       }
-      this.imageData.data[start + i] = c;
+      this.imageData.data[start+i] = c;
     }
   }
 }
