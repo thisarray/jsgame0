@@ -28,6 +28,17 @@ function RSVP() {
   return 'RSVP';
 }
 
+/*
+ * Functions with side effects.
+ */
+function addRSVP() {
+  clock.schedule(RSVP, 10);
+}
+
+function cancelRSVP() {
+  clock.unschedule(RSVP);
+}
+
 function test_sanity() {
   test.assertEqual(clock._get_queue(), []);
   clock._clear_queue();
@@ -59,6 +70,16 @@ function test_schedule_unique() {
     clock.schedule_unique(reply, delay);
     test.assertEqual(clock._get_queue(), [[reply, delay, 0]]);
   }
+  clock._clear_queue();
+  test.assertEqual(clock._get_queue(), []);
+  clock.schedule(reply, 5);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  clock.schedule(reply, 10);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0]]);
+  clock.schedule(reply, 15);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0], [reply, 15, 0]]);
+  clock.schedule_unique(reply, 30);
+  test.assertEqual(clock._get_queue(), [[reply, 30, 0]]);
   clock._clear_queue();
   test.assertEqual(clock._get_queue(), []);
 }
@@ -101,6 +122,12 @@ function test_unschedule() {
   test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
   clock.unschedule(reply);
   test.assertEqual(clock._get_queue(), []);
+  clock.schedule(reply, 5);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  clock.schedule(reply, 10);
+  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0]]);
+  clock.unschedule(reply);
+  test.assertEqual(clock._get_queue(), []);
 }
 
 function test_unschedule_interval() {
@@ -141,6 +168,18 @@ function test_update_queue() {
   clock._update_queue(5);
   test.assertEqual(clock._get_queue(), [[RSVP, 10, 10]]);
   clock._clear_queue();
+  test.assertEqual(clock._get_queue(), []);
+}
+
+function test_update_queue_side_effect() {
+  test.assertEqual(clock._get_queue(), []);
+  clock.schedule(addRSVP, 5);
+  test.assertEqual(clock._get_queue(), [[addRSVP, 5, 0]]);
+  clock._update_queue(5);
+  test.assertEqual(clock._get_queue(), [[RSVP, 10, 0]]);
+  clock.schedule(cancelRSVP, 5);
+  test.assertEqual(clock._get_queue(), [[RSVP, 10, 0], [cancelRSVP, 5, 0]]);
+  clock._update_queue(5);
   test.assertEqual(clock._get_queue(), []);
 }
 

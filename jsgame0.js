@@ -770,11 +770,13 @@ const clock = (function () {
      * Loop through all the callbacks in queue and call any that are due.
      */
     _update_queue(dt) {
-      let result = [], newETA;
+      let due = [],
+          result = [],
+          newETA;
       for (let [callback, eta, next] of queue) {
         newETA = eta - dt;
         if (newETA <= 0) {
-          callback();
+          due.push(callback);
           if (next > 0) {
             result.push([callback, next, next]);
           }
@@ -784,6 +786,12 @@ const clock = (function () {
         }
       }
       queue = result;
+
+      // Call the callbacks after updating the queue to avoid
+      // the lost update problem if a callback modifies the queue
+      for (let callback of due) {
+        callback();
+      }
     }
   }
 })();
@@ -1756,14 +1764,26 @@ class Inbetweener {
    * Loop through all the animations in the animation queue and tween.
    */
   static _update_queue(dt) {
-    let result = [];
+    let due = [],
+        result = [];
     for (let a of this.queue) {
       a.update(dt);
-      if (!a.done) {
+      if (a.done) {
+        if (typeof a.callback === 'function') {
+          due.push(a.callback);
+        }
+      }
+      else {
         result.push(a);
       }
     }
     this.queue = result;
+
+    // Call the callbacks after updating the queue to avoid
+    // the lost update problem if a callback modifies the queue
+    for (let callback of due) {
+      callback();
+    }
   }
 
   constructor(puppet, duration, attributes, tween, callback) {
@@ -1830,9 +1850,6 @@ class Inbetweener {
       // If the animation has reached its end
       for (let [k, v] of this.attributes) {
         this.puppet[k] = v.end;
-      }
-      if (typeof this.callback === 'function') {
-        this.callback();
       }
     }
     else {

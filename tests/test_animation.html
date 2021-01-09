@@ -227,9 +227,6 @@ function test_multiple_puppets() {
   test.assertEqual(q.attribute, 20);
 }
 
-/*
- * Test the callback works
- */
 function test_on_finished() {
   let p = {attribute: 0},
       endlist = ['in progress'],
@@ -253,8 +250,41 @@ function test_on_finished() {
   a.update(1);
   test.assertTrue(a.done);
   test.assertEqual(p.attribute, 2);
-  test.assertEqual(endlist, []);
+  test.assertEqual(endlist, ['in progress']);
   a.update(1);
+  test.assertTrue(a.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(endlist, ['in progress']);
+}
+
+/*
+ * Test the callback works
+ */
+function test_on_finished_animate() {
+  let p = {attribute: 0},
+      endlist = ['in progress'],
+      a;
+  function pop() {
+    endlist.pop();
+  }
+  a = animate(p, 2, {attribute: 2}, 'linear', pop);
+
+  test.assertFalse(a.done);
+  test.assertEqual(p.attribute, 0);
+  test.assertEqual(endlist, ['in progress']);
+  Inbetweener._update_queue(1);
+  test.assertFalse(a.done);
+  test.assertEqual(p.attribute, 1);
+  test.assertEqual(endlist, ['in progress']);
+  Inbetweener._update_queue(1);
+  test.assertFalse(a.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(endlist, ['in progress']);
+  Inbetweener._update_queue(1);
+  test.assertTrue(a.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(endlist, []);
+  Inbetweener._update_queue(1);
   test.assertTrue(a.done);
   test.assertEqual(p.attribute, 2);
   test.assertEqual(endlist, []);
@@ -263,23 +293,23 @@ function test_on_finished() {
 function test_not_finished() {
   let p = {attribute: 0},
       endlist = ['in progress'],
-      a = new Inbetweener(p, 2, {attribute: 2}, 'linear', 42);
+      a = animate(p, 2, {attribute: 2}, 'linear', 42);
   test.assertFalse(a.done);
   test.assertEqual(p.attribute, 0);
   test.assertEqual(endlist, ['in progress']);
-  a.update(1);
+  Inbetweener._update_queue(1);
   test.assertFalse(a.done);
   test.assertEqual(p.attribute, 1);
   test.assertEqual(endlist, ['in progress']);
-  a.update(1);
+  Inbetweener._update_queue(1);
   test.assertFalse(a.done);
   test.assertEqual(p.attribute, 2);
   test.assertEqual(endlist, ['in progress']);
-  a.update(1);
+  Inbetweener._update_queue(1);
   test.assertTrue(a.done);
   test.assertEqual(p.attribute, 2);
   test.assertEqual(endlist, ['in progress']);
-  a.update(1);
+  Inbetweener._update_queue(1);
   test.assertTrue(a.done);
   test.assertEqual(p.attribute, 2);
   test.assertEqual(endlist, ['in progress']);
@@ -561,6 +591,35 @@ function test_update_queue() {
   test.assertEqual(p.attribute, 2);
   test.assertEqual(q.attribute, 20);
   Inbetweener._update_queue(1);
+  test.assertEqual(Inbetweener.queue, []);
+  test.assertTrue(a.done);
+  test.assertTrue(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 20);
+}
+
+function test_update_queue_side_effects() {
+  let p = {attribute: 0},
+      q = {attribute: 0},
+      a, b;
+  function sideEffect() {
+    b = animate(q, 2, {attribute: 20});
+  }
+
+  test.assertEqual(Inbetweener.queue, []);
+  a = animate(p, 2, {attribute: 2}, 'linear', sideEffect);
+  test.assertFalse(a.done);
+  test.assertEqual(b, undefined);
+  test.assertEqual(p.attribute, 0);
+  test.assertEqual(q.attribute, 0);
+  test.assertEqual(Inbetweener.queue, [a]);
+  Inbetweener._update_queue(3);
+  test.assertEqual(Inbetweener.queue, [b]);
+  test.assertTrue(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 0);
+  Inbetweener._update_queue(3);
   test.assertEqual(Inbetweener.queue, []);
   test.assertTrue(a.done);
   test.assertTrue(b.done);
