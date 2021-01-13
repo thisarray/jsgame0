@@ -40,21 +40,21 @@ function cancelRSVP() {
 }
 
 function test_sanity() {
-  test.assertEqual(clock._get_queue(), []);
-  clock._clear_queue();
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
+  clock._clearQueue();
+  test.assertEqual(clock._getQueue(), []);
 }
 
 function test_schedule() {
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule(reply, 5);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0]]);
   clock.schedule(reply, 10);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0], [reply, 10, 0]]);
   clock.schedule(reply, 15);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0], [reply, 15, 0]]);
-  clock._clear_queue();
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0], [reply, 10, 0], [reply, 15, 0]]);
+  clock._clearQueue();
+  test.assertEqual(clock._getQueue(), []);
 }
 
 function test_schedule_error() {
@@ -65,23 +65,23 @@ function test_schedule_error() {
 }
 
 function test_schedule_unique() {
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
   for (let delay of [5, 10, 15]) {
     clock.schedule_unique(reply, delay);
-    test.assertEqual(clock._get_queue(), [[reply, delay, 0]]);
+    test.assertEqual(clock._getQueue(), [[reply, delay, 0]]);
   }
-  clock._clear_queue();
-  test.assertEqual(clock._get_queue(), []);
+  clock._clearQueue();
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule(reply, 5);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0]]);
   clock.schedule(reply, 10);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0], [reply, 10, 0]]);
   clock.schedule(reply, 15);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0], [reply, 15, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0], [reply, 10, 0], [reply, 15, 0]]);
   clock.schedule_unique(reply, 30);
-  test.assertEqual(clock._get_queue(), [[reply, 30, 0]]);
-  clock._clear_queue();
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), [[reply, 30, 0]]);
+  clock._clearQueue();
+  test.assertEqual(clock._getQueue(), []);
 }
 
 /*
@@ -96,15 +96,15 @@ function test_schedule_unique_error() {
 }
 
 function test_schedule_interval() {
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule_interval(reply, 5);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 5]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 5]]);
   clock.schedule_interval(reply, 10);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 5], [reply, 10, 10]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 5], [reply, 10, 10]]);
   clock.schedule_interval(reply, 15);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 5], [reply, 10, 10], [reply, 15, 15]]);
-  clock._clear_queue();
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 5], [reply, 10, 10], [reply, 15, 15]]);
+  clock._clearQueue();
+  test.assertEqual(clock._getQueue(), []);
 }
 
 function test_schedule_interval_error() {
@@ -115,31 +115,31 @@ function test_schedule_interval_error() {
 }
 
 function test_unschedule() {
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule(reply, 5);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0]]);
   clock.unschedule(RSVP);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0]]);
   clock.unschedule(reply);
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule(reply, 5);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0]]);
   clock.schedule(reply, 10);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [reply, 10, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0], [reply, 10, 0]]);
   clock.unschedule(reply);
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
 }
 
 function test_unschedule_interval() {
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule_interval(reply, 5);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 5]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 5]]);
   clock.schedule_interval(RSVP, 10);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 5], [RSVP, 10, 10]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 5], [RSVP, 10, 10]]);
   clock.unschedule(reply);
-  test.assertEqual(clock._get_queue(), [[RSVP, 10, 10]]);
+  test.assertEqual(clock._getQueue(), [[RSVP, 10, 10]]);
   clock.unschedule(RSVP);
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), []);
 }
 
 function test_unschedule_error() {
@@ -147,40 +147,40 @@ function test_unschedule_error() {
   test.assertRaises(TypeError, clock.unschedule, 'foobar');
 }
 
-function test_update_queue() {
-  test.assertEqual(clock._get_queue(), []);
+function test_updateQueue() {
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule(reply, 5);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0]]);
   clock.schedule_interval(RSVP, 10);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [RSVP, 10, 10]]);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0], [RSVP, 10, 10]]);
   clock.schedule(reply, 15);
-  test.assertEqual(clock._get_queue(), [[reply, 5, 0], [RSVP, 10, 10], [reply, 15, 0]]);
-  clock._update_queue(1);
-  test.assertEqual(clock._get_queue(), [[reply, 4, 0], [RSVP, 9, 10], [reply, 14, 0]]);
-  clock._update_queue(2);
-  test.assertEqual(clock._get_queue(), [[reply, 2, 0], [RSVP, 7, 10], [reply, 12, 0]]);
-  clock._update_queue(3);
-  test.assertEqual(clock._get_queue(), [[RSVP, 4, 10], [reply, 9, 0]]);
-  clock._update_queue(4);
-  test.assertEqual(clock._get_queue(), [[RSVP, 10, 10], [reply, 5, 0]]);
-  clock._update_queue(5);
-  test.assertEqual(clock._get_queue(), [[RSVP, 5, 10]]);
-  clock._update_queue(5);
-  test.assertEqual(clock._get_queue(), [[RSVP, 10, 10]]);
-  clock._clear_queue();
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), [[reply, 5, 0], [RSVP, 10, 10], [reply, 15, 0]]);
+  clock._updateQueue(1);
+  test.assertEqual(clock._getQueue(), [[reply, 4, 0], [RSVP, 9, 10], [reply, 14, 0]]);
+  clock._updateQueue(2);
+  test.assertEqual(clock._getQueue(), [[reply, 2, 0], [RSVP, 7, 10], [reply, 12, 0]]);
+  clock._updateQueue(3);
+  test.assertEqual(clock._getQueue(), [[RSVP, 4, 10], [reply, 9, 0]]);
+  clock._updateQueue(4);
+  test.assertEqual(clock._getQueue(), [[RSVP, 10, 10], [reply, 5, 0]]);
+  clock._updateQueue(5);
+  test.assertEqual(clock._getQueue(), [[RSVP, 5, 10]]);
+  clock._updateQueue(5);
+  test.assertEqual(clock._getQueue(), [[RSVP, 10, 10]]);
+  clock._clearQueue();
+  test.assertEqual(clock._getQueue(), []);
 }
 
-function test_update_queue_side_effect() {
-  test.assertEqual(clock._get_queue(), []);
+function test_updateQueue_side_effect() {
+  test.assertEqual(clock._getQueue(), []);
   clock.schedule(addRSVP, 5);
-  test.assertEqual(clock._get_queue(), [[addRSVP, 5, 0]]);
-  clock._update_queue(5);
-  test.assertEqual(clock._get_queue(), [[RSVP, 10, 0]]);
+  test.assertEqual(clock._getQueue(), [[addRSVP, 5, 0]]);
+  clock._updateQueue(5);
+  test.assertEqual(clock._getQueue(), [[RSVP, 10, 0]]);
   clock.schedule(cancelRSVP, 5);
-  test.assertEqual(clock._get_queue(), [[RSVP, 10, 0], [cancelRSVP, 5, 0]]);
-  clock._update_queue(5);
-  test.assertEqual(clock._get_queue(), []);
+  test.assertEqual(clock._getQueue(), [[RSVP, 10, 0], [cancelRSVP, 5, 0]]);
+  clock._updateQueue(5);
+  test.assertEqual(clock._getQueue(), []);
 }
 
 test.main();

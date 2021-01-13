@@ -755,21 +755,21 @@ const clock = (function () {
       queue = queue.filter(q => (q[0] !== callback));
     },
 
-    _clear_queue() {
+    _clearQueue() {
       queue = [];
     },
 
     /*
      * Return a copy of queue for testing.
      */
-    _get_queue() {
+    _getQueue() {
       return queue.slice();
     },
 
     /*
      * Loop through all the callbacks in queue and call any that are due.
      */
-    _update_queue(dt) {
+    _updateQueue(dt) {
       let due = [],
           result = [],
           newETA;
@@ -1756,17 +1756,17 @@ class Inbetweener {
   /*
    * Clear the animation queue.
    */
-  static _clear_queue() {
-    this.queue = [];
+  static _clearQueue() {
+    Inbetweener.queue = [];
   }
 
   /*
    * Loop through all the animations in the animation queue and tween.
    */
-  static _update_queue(dt) {
+  static _updateQueue(dt) {
     let due = [],
         result = [];
-    for (let a of this.queue) {
+    for (let a of Inbetweener.queue) {
       a.update(dt);
       if (a.done) {
         if (typeof a.callback === 'function') {
@@ -1777,7 +1777,7 @@ class Inbetweener {
         result.push(a);
       }
     }
-    this.queue = result;
+    Inbetweener.queue = result;
 
     // Call the callbacks after updating the queue to avoid
     // the lost update problem if a callback modifies the queue
@@ -1911,9 +1911,7 @@ function animate() {
 }
 
 /*
- * The global screen object representing your game screen.
- *
- * It mimicks the Python object using Immediately Invoked Function Expression/Self-Executing Anonymous Function.
+ * Global object representing your game screen.
  */
 const screen = (function () {
   const DEFAULT_COLOR = 'white';
@@ -1927,7 +1925,7 @@ const screen = (function () {
   const TWO_PI = Math.PI * 2;
 
   /*
-   * Parse a color given as a String or an Array of 3 Numbers.
+   * Parse a color given as a String or an Array of Numbers.
    */
   function parseColor(color) {
     if (typeof color === 'string') {
@@ -2055,8 +2053,8 @@ const screen = (function () {
     const elapsed = (timestamp - start) / 1000;
     start = timestamp;
 
-    clock._update_queue(elapsed);
-    Inbetweener._update_queue(elapsed);
+    clock._updateQueue(elapsed);
+    Inbetweener._updateQueue(elapsed);
 
     if (hasUpdate) {
       window.update(elapsed);
@@ -2486,8 +2484,8 @@ const screen = (function () {
             pause = document.querySelector(pauseID);
       if (reset != null) {
         reset.addEventListener('click', (event) => {
-          clock._clear_queue();
-          Inbetweener._clear_queue();
+          clock._clearQueue();
+          Inbetweener._clearQueue();
           if (typeof window.reset === 'function') {
             window.reset();
           }
@@ -2499,7 +2497,7 @@ const screen = (function () {
       }
       if (pause != null) {
         pause.addEventListener('click', (event) => {
-          if (event.target.textContent == 'Pause') {
+          if (event.target.textContent === 'Pause') {
             screen.stop();
             event.target.textContent = 'Unpause';
           }
@@ -2711,6 +2709,7 @@ class Surface {
       else {
         c = 0;
       }
+      // ImageData clamps the value if c is not in [0, 255]
       this.imageData.data[start+i] = c;
     }
   }
