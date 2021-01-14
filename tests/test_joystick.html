@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test the Joystick class</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test the Joystick class</h1>
+
+<form>
+<button type="button" id="quit">Quit</button>
+</from>
+
+<output>
+</output>
+
+<script>
+const quitButton = document.querySelector('#quit');
+const output = document.querySelector('output');
+
+test.assertEqual(Joystick.get_count(), 0);
+test.assertFalse(Joystick.get_init());
+Joystick.init();
+test.assertTrue(Joystick.get_init());
+
+quitButton.addEventListener('click', (event) => {
+  test.assertTrue(Joystick.get_init());
+  Joystick.quit();
+  test.assertEqual(Joystick.get_count(), 0);
+  test.assertFalse(Joystick.get_init());
+});
+
+function loop(timestamp) {
+  window.requestAnimationFrame(loop);
+
+  let count = Joystick.get_count(),
+      markup = [];
+  if (count > 0) {
+    markup.push(`<p>Number of joysticks: ${ count }</p>`);
+
+    for (let i = 0; i < count; i++) {
+      let joystick = new Joystick(i),
+          axisCount = joystick.get_numaxes(),
+          buttonCount = joystick.get_numbuttons();
+      markup.push(`<h2>Joystick ${ joystick.get_instance_id() }</h2>`);
+      markup.push(`<p>GUID: ${ joystick.get_guid() }</p>`);
+      markup.push(`<p>Number of axes: ${ axisCount }</p>`);
+      markup.push('<ol start="0">');
+      for (let j = 0; j < axisCount; j++) {
+        markup.push(`  <li>${ joystick.get_axis(j) }</li>`);
+      }
+      markup.push('</ol>');
+
+      markup.push(`<p>Number of buttons ${ buttonCount }</p>`);
+      markup.push('<ol start="0">');
+      for (let j = 0; j < buttonCount; j++) {
+        markup.push(`  <li>${ joystick.get_button(j) }</li>`);
+      }
+      markup.push('</ol>');
+    }
+
+    output.innerHTML = markup.join('\n');
+  }
+  else {
+    output.innerHTML = '<p>No joystick found.</p>';
+  }
+}
+
+window.requestAnimationFrame(loop);
+</script>
+</body>
+
+</html>
