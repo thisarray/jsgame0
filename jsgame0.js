@@ -2585,7 +2585,221 @@ const screen = (function () {
  */
 
 /*
- * Wrapper around an ImageData object to support scripts that rely on pixel manipulation.
+ * A JavaScript wrapper around the Gamepad API based on pygame.joystick.
+ *
+ * It only supports axes and buttons.
+ */
+class Joystick {
+  /*
+   * Array of Gamepad indices.
+   */
+  static _controllers = [];
+
+  /*
+   * Boolean flag indicating whether the joystick module is initialized.
+   */
+  static _initialized = false;
+
+  /*
+   * Add the detected gamepad in this event to the list of controllers.
+   */
+  static _connect(event) {
+    let index = event.gamepad.index;
+    if (!Joystick._controllers.includes(index)) {
+      Joystick._controllers.push(index);
+    }
+  }
+
+  /*
+   * Remove the detected gamepad in this event from the list of controllers.
+   *
+   * We only set the Gamepad index to null. If we modified the _controllers
+   * array, then existing Joystick instances may map to the wrong joystick.
+   *
+   * This means if you disconnect a joystick and connect the same joystick
+   * again, the number of joysticks will increase by 1. That is, the
+   * original disconnected joystick is not removed and 1 is added for the
+   * newly connected joystick.
+   */
+  static _disconnect(event) {
+    let index = event.gamepad.index;
+    for (let i = 0; i < Joystick._controllers.length; i++) {
+      if (Joystick._controllers[i] === index) {
+        Joystick._controllers[i] = null;
+      }
+    }
+  }
+
+  /*
+   * Initialize the joystick module.
+   */
+  static init() {
+    if (Joystick._initialized) {
+      return;
+    }
+    window.addEventListener('gamepadconnected', Joystick._connect);
+    window.addEventListener('gamepaddisconnected', Joystick._disconnect);
+    Joystick._controllers = [];
+    Joystick._initialized = true;
+  }
+
+  /*
+   * Uninitialize the joystick module.
+   */
+  static quit() {
+    if (!Joystick._initialized) {
+      return;
+    }
+    window.removeEventListener('gamepadconnected', Joystick._connect);
+    window.removeEventListener('gamepaddisconnected', Joystick._disconnect);
+    Joystick._controllers = [];
+    Joystick._initialized = false;
+  }
+
+  /*
+   * Return true if the joystick module is initialized.
+   */
+  static get_init() {
+    return Joystick._initialized;
+  }
+
+  /*
+   * Return the number of joysticks.
+   */
+  static get_count() {
+    return Joystick._controllers.length;
+  }
+
+  constructor(index) {
+    if (typeof index !== 'number') {
+      throw new TypeError(
+        'index must be a Number in [0, Joystick.get_count()).');
+    }
+    if (index < 0) {
+      throw new RangeError(
+        'index must be a Number in [0, Joystick.get_count()).');
+    }
+    if (Joystick._controllers.length <= index) {
+      throw new RangeError(
+        'index must be a Number in [0, Joystick.get_count()).');
+    }
+
+    /*
+     * Number index in Joystick._controllers NOT the Gamepad index.
+     */
+    this.index = index;
+  }
+
+  /*
+   * Return the Number joystick instance id.
+   */
+  get_instance_id() {
+    return this.index;
+  }
+
+  /*
+   * Return the underlying delegate Gamepad object.
+   */
+  _getGamepad() {
+    if (this.index < 0) {
+      return null;
+    }
+    if (Joystick._controllers.length <= this.index) {
+      return null;
+    }
+    let gamepadIndex = Joystick._controllers[this.index];
+    if (gamepadIndex == null) {
+      return null;
+    }
+    return navigator.getGamepads()[gamepadIndex];
+  }
+
+  /*
+   * Return the String joystick GUID containing identifying information.
+   */
+  get_guid() {
+    let gamepad = this._getGamepad();
+    if (gamepad != null) {
+      return gamepad.id;
+    }
+    return '';
+  }
+
+  /*
+   * Return the number of axes on a joystick.
+   */
+  get_numaxes() {
+    let gamepad = this._getGamepad();
+    if (gamepad != null) {
+      return gamepad.axes.length;
+    }
+    return 0;
+  }
+
+  /*
+   * Return the current position of the indexed axis in [-1, 1].
+   *
+   * The axis number must be an integer from 0 to get_numaxes() - 1.
+   *
+   * When using gamepads both the control sticks and the analog triggers
+   * are usually reported as axes.
+   */
+  get_axis(i, fallback = 0) {
+    if (typeof i !== 'number') {
+      throw new TypeError(
+        'i must be a non-negative Number less than the number of axes.');
+    }
+    if (i < 0) {
+      throw new RangeError(
+        'i must be a non-negative Number less than the number of axes.');
+    }
+
+    let gamepad = this._getGamepad();
+    if (gamepad != null) {
+      if (i < gamepad.axes.length) {
+        return gamepad.axes[i];
+      }
+    }
+    return fallback;
+  }
+
+  /*
+   * Return the number of buttons on a joystick.
+   */
+  get_numbuttons() {
+    let gamepad = this._getGamepad();
+    if (gamepad != null) {
+      return gamepad.buttons.length;
+    }
+    return 0;
+  }
+
+  /*
+   * Return true if the indexed button is currently being pressed.
+   */
+  get_button(i, fallback = false) {
+    if (typeof i !== 'number') {
+      throw new TypeError(
+        'i must be a non-negative Number less than the number of buttons.');
+    }
+    if (i < 0) {
+      throw new RangeError(
+        'i must be a non-negative Number less than the number of buttons.');
+    }
+
+    let gamepad = this._getGamepad();
+    if (gamepad != null) {
+      if (i < gamepad.buttons.length) {
+        return gamepad.buttons[i].pressed;
+      }
+    }
+    return fallback;
+  }
+}
+
+/*
+ * A JavaScript wrapper around an ImageData object
+ * to support scripts that rely on pixel manipulation.
  *
  * There is no pixel array or screen buffer to which you can write in JavaScript.
  * The closest thing is drawing to and then getting the pixels for a portion of the screen.
