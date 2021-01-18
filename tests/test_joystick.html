@@ -30,14 +30,116 @@ body {
 const quitButton = document.querySelector('#quit');
 const output = document.querySelector('output');
 
+function test_constructor() {
+  let j;
+  try {
+    j = new Joystick();
+    console.assert(false, 'TypeError not raised.');
+  }
+  catch (error) {
+    test.assertTrue(error instanceof TypeError);
+  }
+  try {
+    j = new Joystick('foobar');
+    console.assert(false, 'TypeError not raised.');
+  }
+  catch (error) {
+    test.assertTrue(error instanceof TypeError);
+  }
+
+  for (let value of [-1, 42, 0]) {
+    try {
+      j = new Joystick(value);
+      console.assert(false, 'RangeError not raised.');
+    }
+    catch (error) {
+      test.assertTrue(error instanceof RangeError);
+    }
+  }
+}
+
+function test_fallback() {
+  test.assertEqual(Joystick._controllers, []);
+  test.assertFalse(Joystick._initialized);
+  test.assertEqual(Joystick.get_count(), 0);
+  test.assertFalse(Joystick.get_init());
+  Joystick._controllers.push(42);
+  test.assertFalse(Joystick._initialized);
+  test.assertEqual(Joystick.get_count(), 1);
+  test.assertFalse(Joystick.get_init());
+
+  let j = new Joystick(0);
+  test.assertEqual(j.get_instance_id(), 0);
+  test.assertIs(j._getGamepad(), undefined);
+  test.assertEqual(j.get_guid(), '');
+  test.assertEqual(j.get_numaxes(), 0);
+  test.assertEqual(j.get_numbuttons(), 0);
+
+  test.assertRaises(TypeError, j.get_axis, 'foobar');
+  test.assertRaises(RangeError, j.get_axis, -1);
+  test.assertRaises(TypeError, j.get_button, 'foobar');
+  test.assertRaises(RangeError, j.get_button, -1);
+  for (let i = 0; i < 10; i++) {
+    test.assertEqual(j.get_axis(i), 0);
+    test.assertEqual(j.get_axis(i, 42), 42);
+    test.assertEqual(j.get_axis(i, 'foobar'), 'foobar');
+    test.assertFalse(j.get_button(i));
+    test.assertTrue(j.get_button(i, true));
+    test.assertEqual(j.get_button(i, 42), 42);
+    test.assertEqual(j.get_button(i, 'foobar'), 'foobar');
+  }
+
+  for (let value of [-1, 42, 0]) {
+    j.index = value;
+    if (value === 0) {
+      Joystick._controllers[0] = null;
+    }
+    test.assertEqual(j.get_instance_id(), value);
+    test.assertIs(j._getGamepad(), null);
+    test.assertEqual(j.get_guid(), '');
+    test.assertEqual(j.get_numaxes(), 0);
+    test.assertEqual(j.get_numbuttons(), 0);
+
+    test.assertRaises(TypeError, j.get_axis, 'foobar');
+    test.assertRaises(RangeError, j.get_axis, -1);
+    test.assertRaises(TypeError, j.get_button, 'foobar');
+    test.assertRaises(RangeError, j.get_button, -1);
+    for (let i = 0; i < 10; i++) {
+      test.assertEqual(j.get_axis(i), 0);
+      test.assertEqual(j.get_axis(i, 42), 42);
+      test.assertEqual(j.get_axis(i, 'foobar'), 'foobar');
+      test.assertFalse(j.get_button(i));
+      test.assertTrue(j.get_button(i, true));
+      test.assertEqual(j.get_button(i, 42), 42);
+      test.assertEqual(j.get_button(i, 'foobar'), 'foobar');
+    }
+  }
+
+  Joystick._controllers = [];
+  test.assertEqual(Joystick._controllers, []);
+  test.assertFalse(Joystick._initialized);
+  test.assertEqual(Joystick.get_count(), 0);
+  test.assertFalse(Joystick.get_init());
+}
+
+test.main();
+
+test.assertEqual(Joystick._controllers, []);
+test.assertFalse(Joystick._initialized);
 test.assertEqual(Joystick.get_count(), 0);
 test.assertFalse(Joystick.get_init());
 Joystick.init();
+test.assertEqual(Joystick._controllers, []);
+test.assertTrue(Joystick._initialized);
+test.assertEqual(Joystick.get_count(), 0);
 test.assertTrue(Joystick.get_init());
 
 quitButton.addEventListener('click', (event) => {
+  test.assertTrue(Joystick._initialized);
   test.assertTrue(Joystick.get_init());
   Joystick.quit();
+  test.assertEqual(Joystick._controllers, []);
+  test.assertFalse(Joystick._initialized);
   test.assertEqual(Joystick.get_count(), 0);
   test.assertFalse(Joystick.get_init());
 });

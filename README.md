@@ -9,7 +9,7 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
 
 - Actor class
   - x and y always refer to the topleft corner and ARE NOT aliases for pos.
-  - There is no opacity attribute.
+  - posx and posy ARE aliases for pos.
 - There is no music.
   The [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) is up to the task but music is experimental in Pygame Zero.
   Without a firm specification, I did not want to implement it.
@@ -36,7 +36,7 @@ In addition,
 ## License
 
 Based on my reading of the pgzero license, jsgame0.js is free to be licensed however I wish because
-- It is in a different language
+- It is in a different language.
 - It is not a work produced by combining or linking pgzero.
 
 I chose a MIT license for more freedom.
