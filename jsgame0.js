@@ -1270,46 +1270,38 @@ Rect.prototype.toString = function () {
  */
 class Actor {
   constructor(name) {
-    if (!(name in images)) {
-      throw new RangeError(`Unknown image "${ name }".`);
-    }
-
+    // Use the setter for the name check
     this.name = name;
-    let image = images[this.name];
-    this._rect = new Rect(0, 0, image.width, image.height);
 
     // Initialize the anchor at center
-    // x offset in pixels from the topleft corner to the anchor
-    this.anchor_dx = Math.floor(image.width / 2);
+    // If it is a Number, x offset in pixels from the topleft corner to the anchor
+    // If it is a String, relative offset that is lazily evaluated
+    this.anchor_dx = 'center';
 
-    // y offset in pixels from the topleft corner to the anchor
-    this.anchor_dy = Math.floor(image.height / 2);
+    // If it is a Number, y offset in pixels from the topleft corner to the anchor
+    // If it is a String, relative offset that is lazily evaluated
+    this.anchor_dy = 'center';
 
+    this.x = 0;
+    this.y = 0;
     this.angle = 0;
     this.opacity = 1.0;
   }
 
-  get x() {
-    return this._rect.x;
+  get name() {
+    return this._name;
   }
-  set x(x) {
-    this._rect.x = x;
-  }
-  get y() {
-    return this._rect.y;
-  }
-  set y(y) {
-    this._rect.y = y;
+  set name(name) {
+    if (!(name in images)) {
+      throw new RangeError(`Unknown image "${ name }".`);
+    }
+    this._name = name;
   }
   get width() {
-    return this._rect.width;
+    return images[this._name].width;
   }
   get height() {
-    return this._rect.height;
-  }
-
-  get anchor() {
-    return [this.anchor_dx, this.anchor_dy];
+    return images[this._name].height;
   }
 
   /*
@@ -1323,40 +1315,40 @@ class Actor {
     if (typeof anchor === 'string') {
       let cleaned = anchor.trim().toLowerCase();
       if (cleaned === 'topleft') {
-        this.anchor_dx = 0;
-        this.anchor_dy = 0;
+        this.anchor_dx = 'left';
+        this.anchor_dy = 'top';
       }
       else if (cleaned === 'midtop') {
-        this.anchor_dx = Math.floor(this.width / 2);
-        this.anchor_dy = 0;
+        this.anchor_dx = 'center';
+        this.anchor_dy = 'top';
       }
       else if (cleaned === 'topright') {
-        this.anchor_dx = this.width;
-        this.anchor_dy = 0;
+        this.anchor_dx = 'right';
+        this.anchor_dy = 'top';
       }
       else if (cleaned === 'midleft') {
-        this.anchor_dx = 0;
-        this.anchor_dy = Math.floor(this.height / 2);
+        this.anchor_dx = 'left';
+        this.anchor_dy = 'center';
       }
       else if (cleaned === 'center') {
-        this.anchor_dx = Math.floor(this.width / 2);
-        this.anchor_dy = Math.floor(this.height / 2);
+        this.anchor_dx = 'center';
+        this.anchor_dy = 'center';
       }
       else if (cleaned === 'midright') {
-        this.anchor_dx = this.width;
-        this.anchor_dy = Math.floor(this.height / 2);
+        this.anchor_dx = 'right';
+        this.anchor_dy = 'center';
       }
       else if (cleaned === 'bottomleft') {
-        this.anchor_dx = 0;
-        this.anchor_dy = this.height;
+        this.anchor_dx = 'left';
+        this.anchor_dy = 'bottom';
       }
       else if (cleaned === 'midbottom') {
-        this.anchor_dx = Math.floor(this.width / 2);
-        this.anchor_dy = this.height;
+        this.anchor_dx = 'center';
+        this.anchor_dy = 'bottom';
       }
       else if (cleaned === 'bottomright') {
-        this.anchor_dx = this.width;
-        this.anchor_dy = this.height;
+        this.anchor_dx = 'right';
+        this.anchor_dy = 'bottom';
       }
       else {
         throw new RangeError(`Unknown anchor "${ anchor }". Must be "topleft", "midtop", "topright", "midleft", "center", "midright", "bottomleft", "midbottom", or "bottomright".`);
@@ -1380,13 +1372,13 @@ class Actor {
       else if (typeof x === 'string') {
         cleaned = x.trim().toLowerCase();
         if (cleaned === 'left') {
-          this.anchor_dx = 0;
+          this.anchor_dx = 'left';
         }
         else if ((cleaned === 'center') || (cleaned === 'middle')) {
-          this.anchor_dx = Math.floor(this.width / 2);
+          this.anchor_dx = 'center';
         }
         else if (cleaned === 'right') {
-          this.anchor_dx = this.width;
+          this.anchor_dx = 'right';
         }
         else {
           throw new RangeError(`Unknown anchor "${ x }". Must be "left", "center", "middle", or "right".`);
@@ -1402,13 +1394,13 @@ class Actor {
       else if (typeof y === 'string') {
         cleaned = y.trim().toLowerCase();
         if (cleaned === 'top') {
-          this.anchor_dy = 0;
+          this.anchor_dy = 'top';
         }
         else if ((cleaned === 'center') || (cleaned === 'middle')) {
-          this.anchor_dy = Math.floor(this.height / 2);
+          this.anchor_dy = 'center';
         }
         else if (cleaned === 'bottom') {
-          this.anchor_dy = this.height;
+          this.anchor_dy = 'bottom';
         }
         else {
           throw new RangeError(`Unknown anchor "${ y }". Must be "top", "center", "middle", or "bottom".`);
@@ -1423,29 +1415,76 @@ class Actor {
 
     throw new TypeError('Unrecognized anchor type.');
   }
-  get pos() {
-    return [this.x + this.anchor_dx, this.y + this.anchor_dy];
+
+  /*
+   * Return an Array containing the x and y pixel offsets from the topleft corner to the anchor.
+   *
+   * This allows us to lazily evaluate the offsets.
+   */
+  _calculateAnchor() {
+    let result = [];
+    if (typeof this.anchor_dx === 'number') {
+      result.push(this.anchor_dx);
+    }
+    else if (typeof this.anchor_dx === 'string') {
+      if (this.anchor_dx === 'left') {
+        result.push(0);
+      }
+      else if (this.anchor_dx === 'center') {
+        result.push(Math.floor(this.width / 2));
+      }
+      else if (this.anchor_dx === 'right') {
+        result.push(this.width);
+      }
+    }
+
+    if (typeof this.anchor_dy === 'number') {
+      result.push(this.anchor_dy);
+    }
+    else if (typeof this.anchor_dy === 'string') {
+      if (this.anchor_dy === 'top') {
+        result.push(0);
+      }
+      else if (this.anchor_dy === 'center') {
+        result.push(Math.floor(this.height / 2));
+      }
+      else if (this.anchor_dy === 'bottom') {
+        result.push(this.height);
+      }
+    }
+
+    return result;
   }
-  set pos(pos) {
-    let [x=0, y=0] = pos;
-    this.x = x - this.anchor_dx;
-    this.y = y - this.anchor_dy;
-  }
+
   get posx() {
-    return this.x + this.anchor_dx;
+    let [dx=0, dy=0] = this._calculateAnchor();
+    return this.x + dx;
   }
   set posx(posx) {
-    this.x = posx - this.anchor_dx;
+    let [dx=0, dy=0] = this._calculateAnchor();
+    this.x = posx - dx;
   }
   get posy() {
-    return this.y + this.anchor_dy;
+    let [dx=0, dy=0] = this._calculateAnchor();
+    return this.y + dy;
   }
   set posy(posy) {
-    this.y = posy - this.anchor_dy;
+    let [dx=0, dy=0] = this._calculateAnchor();
+    this.y = posy - dy;
+  }
+  get pos() {
+    let [dx=0, dy=0] = this._calculateAnchor();
+    return [this.x + dx, this.y + dy];
+  }
+  set pos(pos) {
+    let [x=0, y=0] = pos,
+        [dx=0, dy=0] = this._calculateAnchor();
+    this.x = x - dx;
+    this.y = y - dy;
   }
 
   /*
-   * Attributes delegated to the underlying Rect object.
+   * Same attributes as the Rect class.
    */
   get top() {
     return this.y;
@@ -1600,7 +1639,7 @@ class Actor {
   }
 
   draw() {
-    screen.blit(this, this.topleft);
+    screen.blit(this, this._calculateAnchor());
   }
 
   _vector_to(target) {
@@ -2401,9 +2440,10 @@ const screen = (function () {
         return;
       }
 
+      let [x=0, y=0] = pos,
+          image;
       if (object instanceof Actor) {
-        let image = images[object.name],
-            [x=0, y=0] = object.anchor;
+        image = images[object.name];
         context.save();
         if (typeof object.opacity === 'number') {
           context.globalAlpha = Math.max(Math.min(object.opacity, 1), 0);
@@ -2413,12 +2453,12 @@ const screen = (function () {
         // Canvas rotates clockwise but Pygame Zero rotates counterclockwise (anticlockwise)
         context.rotate(-(object.angle % 360) * Math.PI / 180);
         // Move the origin to the topleft to draw the image
+        // x and y contain pixel offsets from the topleft corner to the anchor
         context.translate(-x, -y);
         context.drawImage(image, 0, 0);
         context.restore();
       }
       else if (object instanceof Surface) {
-        let [x=0, y=0] = pos;
         context.save();
         context.putImageData(object.imageData, x, y);
         context.restore();
@@ -2427,8 +2467,7 @@ const screen = (function () {
         if (!(object in images)) {
           throw new RangeError(`Unknown image "${ object }".`);
         }
-        let image = images[object],
-            [x=0, y=0] = pos;
+        image = images[object];
         context.save();
         context.drawImage(image, x, y);
         context.restore();
