@@ -1273,7 +1273,6 @@ class Actor {
     // Use the setter for the name check
     this.name = name;
 
-    // Initialize the anchor at center
     // If it is a Number, x offset in pixels from the topleft corner to the anchor
     // If it is a String, relative offset that is lazily evaluated
     this.anchor_dx = 'center';
@@ -1282,8 +1281,10 @@ class Actor {
     // If it is a String, relative offset that is lazily evaluated
     this.anchor_dy = 'center';
 
-    this.x = 0;
-    this.y = 0;
+    // Initialize the anchor at center with the topleft corner at (0, 0)
+    this.posx = Math.floor(this.width / 2);
+    this.posy = Math.floor(this.height / 2);
+
     this.angle = 0;
     this.opacity = 1.0;
   }
@@ -1296,12 +1297,6 @@ class Actor {
       throw new RangeError(`Unknown image "${ name }".`);
     }
     this._name = name;
-  }
-  get width() {
-    return images[this._name].width;
-  }
-  get height() {
-    return images[this._name].height;
   }
 
   /*
@@ -1416,6 +1411,15 @@ class Actor {
     throw new TypeError('Unrecognized anchor type.');
   }
 
+  get pos() {
+    return [this.posx, this.posy];
+  }
+  set pos(pos) {
+    let [x=0, y=0] = pos;
+    this.posx = x;
+    this.posy = y;
+  }
+
   /*
    * Return an Array containing the x and y pixel offsets from the topleft corner to the anchor.
    *
@@ -1456,35 +1460,34 @@ class Actor {
     return result;
   }
 
-  get posx() {
+  /*
+   * Make x, y, width, and height available as attributes to mimic the Rect class.
+   */
+  get x() {
     let [dx=0, dy=0] = this._calculateAnchor();
-    return this.x + dx;
+    return this.posx - dx;
   }
-  set posx(posx) {
+  set x(x) {
     let [dx=0, dy=0] = this._calculateAnchor();
-    this.x = posx - dx;
+    this.posx = x + dx;
   }
-  get posy() {
+  get y() {
     let [dx=0, dy=0] = this._calculateAnchor();
-    return this.y + dy;
+    return this.posy - dy;
   }
-  set posy(posy) {
+  set y(y) {
     let [dx=0, dy=0] = this._calculateAnchor();
-    this.y = posy - dy;
+    this.posy = y + dy;
   }
-  get pos() {
-    let [dx=0, dy=0] = this._calculateAnchor();
-    return [this.x + dx, this.y + dy];
+  get width() {
+    return images[this._name].width;
   }
-  set pos(pos) {
-    let [x=0, y=0] = pos,
-        [dx=0, dy=0] = this._calculateAnchor();
-    this.x = x - dx;
-    this.y = y - dy;
+  get height() {
+    return images[this._name].height;
   }
 
   /*
-   * Same attributes as the Rect class.
+   * Same attributes as the Rect class based on x, y, width, and height above.
    */
   get top() {
     return this.y;
