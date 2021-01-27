@@ -58,6 +58,28 @@ function test_getRandomInteger() {
   }
 }
 
+function test_shuffle() {
+  let expected = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      x = expected.slice(),
+      notEqual = false;
+  for (let i = 0; i < 100; i++) {
+    test.assertEqual(x, expected);
+    shuffle(x);
+    notEqual = false;
+    for (let j = 0; j < expected.length; j++) {
+      if (x[j] !== expected[j]) {
+        notEqual = true;
+        break;
+      }
+    }
+    test.assertTrue(notEqual);
+
+    // Without a comparison function, Array elements are sorted by converting them to strings
+    x.sort((a, b) => (a - b));
+    test.assertEqual(x, expected);
+  }
+}
+
 function test_angle() {
   for (let [degrees, radians] of [
     [0, 0],
