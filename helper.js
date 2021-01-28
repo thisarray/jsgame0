@@ -26,6 +26,20 @@ function getRandomInteger(min, max) {
   return Math.floor((Math.random() * (max - min)) + min);
 }
 
+/*
+ * Shuffle Array x in place.
+ */
+function shuffle(x) {
+  let j, temp;
+  for (let i = x.length - 1; i > 0; i--) {
+    // pick an element in x[:i+1] with which to exchange x[i]
+    j = getRandomInteger(0, i + 1);
+    temp = x[i];
+    x[i] = x[j];
+    x[j] = temp;
+  }
+}
+
 
 /*
  * If you have not done trigonometry in a while,
