@@ -801,7 +801,7 @@ const images = (function () {
     // Uppercase method names to avoid clashing with lowercase names of resources
     LOAD(selector) {
       for (let e of Array.from(document.querySelectorAll(selector))) {
-        let name = e.getAttribute('alt');
+        let name = e.dataset.name.trim();
         this[name] = e;
       }
     }
@@ -813,8 +813,183 @@ const sounds = (function () {
     // Uppercase method names to avoid clashing with lowercase names of resources
     LOAD(selector) {
       for (let e of Array.from(document.querySelectorAll(selector))) {
-        let name = e.id;
+        let name = e.dataset.name.trim();
         this[name] = e;
+      }
+    }
+  }
+})();
+
+const music = (function () {
+  const TRACK_MAP = new Map();
+
+  let current = null,
+      hasMusicHook = false,
+      next = null,
+      paused = false,
+      stopped = true,
+      volume = 1;
+
+  function deejay(event) {
+    if ((current != null) && (!current.loop)) {
+      if (next != null) {
+        music.play_once(next);
+      }
+    }
+    if (hasMusicHook) {
+      window.on_music_end();
+    }
+  }
+
+  return {
+    LOAD(selector) {
+      for (let e of Array.from(document.querySelectorAll(selector))) {
+        let name = e.dataset.name.trim();
+        TRACK_MAP.set(name, e);
+        e.addEventListener('ended', deejay);
+      }
+      hasMusicHook = (typeof window.on_music_end === 'function');
+    },
+
+    _play(name, loop = false) {
+      if (!TRACK_MAP.has(name)) {
+        // If name is not recognized as a music track
+        return;
+      }
+      current = TRACK_MAP.get(name);
+      current.volume = volume;
+      current.loop = loop;
+      current.currentTime = 0;
+      current.play();
+      paused = false;
+      stopped = false;
+    },
+
+    /*
+     * Play the named music track. The track will loop indefinitely.
+     *
+     * This replaces the currently playing track and cancels any tracks
+     * previously queued with queue().
+     */
+    play(name) {
+      music.stop();
+      music._play(name, true);
+    },
+
+    /*
+     * Similar to play(), but the music will stop after playing through once.
+     */
+    play_once(name) {
+      music.stop();
+      music._play(name, false);
+    },
+
+    /*
+     * Similar to play_once(), but instead of stopping the current music, the
+     * track will be queued to play after the current track finishes.
+     *
+     * Only one track can be queued at a time. Queuing a new track while
+     * another track is queued will result in the new track becoming the
+     * queued track. Also, if the current track is ever stopped or changed,
+     * the queued track will be lost.
+     */
+    queue(name) {
+      if (TRACK_MAP.has(name)) {
+        next = name;
+      }
+    },
+
+    get_pos() {
+      if (current != null) {
+        return current.currentTime;
+      }
+      return 0;
+    },
+
+    set_pos(pos) {
+      if (typeof pos !== 'number') {
+        throw new TypeError('pos must be a number between 0 and the duration of the track.');
+      }
+      if (current != null) {
+        current.currentTime = Math.max(Math.min(pos, current.duration), 0);
+      }
+    },
+
+    rewind() {
+      music.set_pos(0);
+    },
+
+    /*
+     * Stop the music.
+     */
+    stop() {
+      if (!stopped) {
+        if (current != null) {
+          current.loop = false;
+          current.currentTime = current.duration;
+        }
+        next = null;
+        paused = false;
+        stopped = true;
+      }
+    },
+
+    /*
+     * Pause the music temporarily. It can be resumed by calling unpause().
+     */
+    pause() {
+      if (!paused) {
+        if (current != null) {
+          current.pause();
+        }
+        paused = true;
+      }
+    },
+
+    /*
+     * Unpause the music.
+     */
+    unpause() {
+      if (paused) {
+        if (current != null) {
+          current.play();
+        }
+        paused = false;
+      }
+    },
+
+    /*
+     * Returns True if the music is playing (and is not paused), False otherwise.
+     */
+    is_playing() {
+      return ((!pause) && (!stopped));
+    },
+
+    /*
+     * Does nothing. Only exists to match the interface.
+     */
+    fadeout() {
+    },
+
+    /*
+     * Get the current volume of the music system.
+     */
+    get_volume() {
+      return volume;
+    },
+
+    /*
+     * Set the volume of the music system.
+     *
+     * This takes a number between 0 (meaning silent) and 1 (meaning full volume).
+     */
+    set_volume(v) {
+      if (typeof v !== 'number') {
+        throw new TypeError('volume must be a number between 0 (meaning silent) and 1 (meaning full volume).');
+      }
+      volume = Math.max(Math.min(v, 1), 0);
+      if (current != null) {
+        current.volume = volume;
       }
     }
   }
