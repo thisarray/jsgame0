@@ -2,20 +2,21 @@
 
 jsgame0.js is a collection of JavaScript objects following the Pygame Zero specifications.
 This makes porting Pygame Zero scripts from Python to JavaScript straightforward.
-There are still language quirks that may trip you up.
+There are still language quirks like the [remainder operator(%)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder) that may trip you up.
 The game runs in the browser using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API).
 
 ## Differences from Pygame Zero
 
 - Actor class
   - x and y always refer to the topleft corner and ARE NOT aliases for pos.
-  - posx and posy ARE aliases for pos.
-- There is no music.
-  The [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) is up to the task but music is experimental in Pygame Zero.
-  Without a firm specification, I did not want to implement it.
+  - posx and posy ARE the aliases for pos you are looking for.
+- images, sounds, and music map to the underlying [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement).
+  I did not write wrappers for them because for simple operations HTMLMediaElement works the way you expect.
+  For more complex operations, wrappers get in the way.
 - There is no tone.
-- There is no storage.
-  The [localStorage object](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API) serves the same purpose.
+  This is probably for the best because they can get annoying.
+- There is no storage because the
+  [localStorage object](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API) serves the same purpose.
 
 ## Why?
 

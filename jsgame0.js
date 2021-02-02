@@ -831,13 +831,14 @@ const music = (function () {
       volume = 1;
 
   function deejay(event) {
-    if ((current != null) && (!current.loop)) {
-      if (next != null) {
-        music.play_once(next);
-      }
-    }
     if (hasMusicHook) {
       window.on_music_end();
+    }
+    if ((current != null) && (!current.loop)) {
+      if (next != null) {
+        music._play(next, false);
+        next = null;
+      }
     }
   }
 
@@ -868,7 +869,7 @@ const music = (function () {
     /*
      * Play the named music track. The track will loop indefinitely.
      *
-     * This replaces the currently playing track and cancels any tracks
+     * This replaces the currently playing track and cancels any track
      * previously queued with queue().
      */
     play(name) {
@@ -911,7 +912,7 @@ const music = (function () {
         throw new TypeError('pos must be a number between 0 and the duration of the track.');
       }
       if (current != null) {
-        current.currentTime = Math.max(Math.min(pos, current.duration), 0);
+        current.currentTime = Math.max(0, Math.min(pos, current.duration));
       }
     },
 
@@ -924,11 +925,11 @@ const music = (function () {
      */
     stop() {
       if (!stopped) {
+        next = null;
         if (current != null) {
           current.loop = false;
           current.currentTime = current.duration;
         }
-        next = null;
         paused = false;
         stopped = true;
       }
@@ -962,7 +963,7 @@ const music = (function () {
      * Returns True if the music is playing (and is not paused), False otherwise.
      */
     is_playing() {
-      return ((!pause) && (!stopped));
+      return ((!paused) && (!stopped));
     },
 
     /*
@@ -987,7 +988,7 @@ const music = (function () {
       if (typeof v !== 'number') {
         throw new TypeError('volume must be a number between 0 (meaning silent) and 1 (meaning full volume).');
       }
-      volume = Math.max(Math.min(v, 1), 0);
+      volume = Math.max(0, Math.min(v, 1));
       if (current != null) {
         current.volume = volume;
       }
@@ -2155,10 +2156,10 @@ const screen = (function () {
     }
     else {
       let [r=0, g=0, b=0, a=MAX_COLOR] = color;
-      r = Math.max(Math.min(r, MAX_COLOR), 0);
-      g = Math.max(Math.min(g, MAX_COLOR), 0);
-      b = Math.max(Math.min(b, MAX_COLOR), 0);
-      a = Math.max(Math.min(a, MAX_COLOR), 0);
+      r = Math.max(0, Math.min(r, MAX_COLOR));
+      g = Math.max(0, Math.min(g, MAX_COLOR));
+      b = Math.max(0, Math.min(b, MAX_COLOR));
+      a = Math.max(0, Math.min(a, MAX_COLOR));
       if (a === MAX_COLOR) {
         return `rgb(${ r }, ${ g }, ${ b })`;
       }
@@ -2506,7 +2507,7 @@ const screen = (function () {
         }
 
         if (('alpha' in config) && (typeof config['alpha'] === 'number')) {
-          context.globalAlpha = Math.max(Math.min(config['alpha'], 1), 0);
+          context.globalAlpha = Math.max(0, Math.min(config['alpha'], 1));
         }
         if ('color' in config) {
           color = parseColor(config['color']);
@@ -2624,7 +2625,7 @@ const screen = (function () {
         image = images[object.name];
         context.save();
         if (typeof object.opacity === 'number') {
-          context.globalAlpha = Math.max(Math.min(object.opacity, 1), 0);
+          context.globalAlpha = Math.max(0, Math.min(object.opacity, 1));
         }
         // Move the origin to the anchor so we can rotate
         context.translate(...object.pos);
