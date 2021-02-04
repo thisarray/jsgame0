@@ -2704,6 +2704,7 @@ const screen = (function () {
         reset.addEventListener('click', (event) => {
           clock._clearQueue();
           Inbetweener._clearQueue();
+          music.stop();
           if (typeof window.reset === 'function') {
             window.reset();
           }
@@ -2725,6 +2726,10 @@ const screen = (function () {
           }
         });
       }
+
+      // Pause the music here so when the user clicks on the canvas and
+      // screen.go() is called, the music starts playing
+      music.pause();
 
       screen.draw.playButton();
     },
@@ -2750,6 +2755,7 @@ const screen = (function () {
         }
       }
 
+      music.unpause();
       screen.clear();
 
       // Start the core game loop
@@ -2765,6 +2771,8 @@ const screen = (function () {
       // Stop the core game loop
       window.cancelAnimationFrame(running);
       running = 0;
+
+      music.pause();
 
       // Remove event listeners
       window.removeEventListener('keydown', keydown, true);
