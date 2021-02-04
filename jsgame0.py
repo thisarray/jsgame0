@@ -88,6 +88,7 @@ HTML_TO_END = """
 window.addEventListener('load', (event) => {
   images.LOAD('#imageLoader img');
   sounds.LOAD('#soundLoader audio');
+  music.LOAD('#musicLoader audio');
   reset();
   screen.set_mode('#screen', '#reset', '#pause');
 });
@@ -177,25 +178,29 @@ def print_image_load(filenames):
     for f in filenames:
         name, _ = os.path.splitext(f)
         # Put the name in the alt attribute to avoid it clashing with sounds
-        print(
-            '  <img class="hidden" src="images/{}" alt="{}">'.format(f, name))
+        print('  <img class="hidden" src="images/{0}" alt="{1}" \
+data-name="{1}">'.format(f, name))
     print('</section>')
 
-def print_sound_load(filenames):
-    """Print the audio tags to load sounds from filenames in sounds/.
+def print_audio_load(filenames, section_ID='soundLoader', directory='sounds'):
+    """Print the audio tags to load audio from filenames in directory.
 
     Args:
-        filenames: List of string valid filenames in the "sounds/" directory.
+        filenames: List of string valid filenames in directory.
+        section_ID: Optional string ID of the section.
+            Defaults to "soundLoader".
+        directory: Optional string directory. Defaults to "sounds".
     """
     if len(filenames) <= 0:
         return
 
-    print('<section id="soundLoader" class="hidden">')
+    print('<section id="{}" class="hidden">'.format(section_ID))
     for f in filenames:
         name, _ = os.path.splitext(f)
         print("""  <audio class="hidden" controls preload="auto" \
-src="sounds/{}" id="{}">Your browser does not support the audio element.\
-</audio>""".format(f, name))
+src="{}/{}" data-name="{}">\
+Your browser does not support the audio element.</audio>""".format(
+    directory, f, name))
     print('</section>')
 
 def print_javascript(lines):
@@ -348,16 +353,17 @@ if __name__ == '__main__':
                                 IMAGE_EXTENSION_SET)
         sounds = list_directory(os.path.join(parent, 'sounds'),
                                 SOUND_EXTENSION_SET)
+        music = list_directory(os.path.join(parent, 'music'),
+                               SOUND_EXTENSION_SET)
         if args.list:
-            print('Fonts:')
-            for f in fonts:
-                print('\t{}'.format(f))
-            print('Images:')
-            for f in images:
-                print('\t{}'.format(f))
-            print('Sounds:')
-            for f in sounds:
-                print('\t{}'.format(f))
+            for header, filenames in [
+                ('Fonts:', fonts),
+                ('Images:', images),
+                ('Sounds:', sounds),
+                ('Music:', music)]:
+                print(header)
+                for f in filenames:
+                    print('\t{}'.format(f))
             parser.exit()
 
         name, _ = os.path.splitext(os.path.basename(args.path))
@@ -375,7 +381,8 @@ if __name__ == '__main__':
         print_font_load(fonts)
         print(HTML_TO_RESOURCE, end='')
         print_image_load(images)
-        print_sound_load(sounds)
+        print_audio_load(sounds, 'soundLoader', 'sounds')
+        print_audio_load(music, 'musicLoader', 'music')
         print(HTML_WITH_CODE.format(title=name, code=html_safe), end='')
         print_javascript(lines)
         print(HTML_TO_END, end='')
