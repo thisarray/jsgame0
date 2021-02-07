@@ -996,6 +996,86 @@ const music = (function () {
   }
 })();
 
+const tone = (function () {
+  // Map each note to its frequency in hertz
+  const NOTE_MAP = new Map();
+
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+
+  /*
+   * Lazily build the map as needed.
+   */
+  function populateNotes() {
+    if (NOTE_MAP.size > 0) {
+      return;
+    }
+
+    // Frequency of A4 in hertz
+    const A4 = 440;
+    const TWELFTH_ROOT = Math.pow(2, 1 / 12);
+
+    for (let [note, value] of [
+      ['a', 0],
+      ['b', 2],
+      ['c', -9],
+      ['d', -7],
+      ['e', -5],
+      ['f', -4],
+      ['g', -2]]) {
+      for (let accidental of ['', 'b', '#']) {
+        for (let octave = 0; octave < 9; octave++) {
+          let key = note + accidental + octave,
+              frequency = value;
+          if (accidental === 'b') {
+            frequency += -1;
+          }
+          else if (accidental === '#') {
+            frequency += 1;
+          }
+          frequency += (4 - octave) * -12;
+          frequency = A4 * Math.pow(TWELFTH_ROOT, frequency);
+
+          NOTE_MAP.set(key, frequency);
+        }
+      }
+    }
+  }
+
+  return {
+    _getNoteMap() {
+      populateNotes();
+      return NOTE_MAP;
+    },
+
+    play(note, duration) {
+      if (typeof note !== 'string') {
+        throw new TypeError('note must be a string. Notes are A-G, are either normal, flat (b) or sharp (#) and of octave 0-8.');
+      }
+      if (typeof duration !== 'number') {
+        throw new TypeError('duration must be a positive number.');
+      }
+      if (duration <= 0) {
+        throw new RangeError('duration must be a positive number.');
+      }
+
+      populateNotes();
+      let cleaned = note.trim().toLowerCase(),
+          oscillator;
+      if (NOTE_MAP.has(cleaned)) {
+        oscillator = context.createOscillator();
+        oscillator.connect(context.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.value = NOTE_MAP.get(cleaned);
+        oscillator.start(context.currentTime);
+        oscillator.stop(context.currentTime + duration);
+      }
+      else {
+        throw new RangeError(`Unrecognized note "${ note }". Notes are A-G, are either normal, flat (b) or sharp (#) and of octave 0-8.`);
+      }
+    }
+  }
+})();
+
 /*
  * The humble Rect class, the heart of the implementation.
  */

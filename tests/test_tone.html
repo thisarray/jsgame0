@@ -22,8 +22,13 @@ body {
 <script>
 function test_NoteMap() {
   const noteMap = tone._getNoteMap();
-  for (let value of ['A9', 'Ab9', 'A#9', 'H4', 'Hb4', 'H#4', '4A', 'a4', 'Az4']) {
+  for (let value of ['A9', 'Ab9', 'A#9', 'H4', 'Hb4', 'H#4', '4A', 'Az4',
+                     ' A9', ' Ab9', ' A#9', ' H4', ' Hb4', ' H#4', ' 4A', ' Az4',
+                     'A9 ', 'Ab9 ', 'A#9 ', 'H4 ', 'Hb4 ', 'H#4 ', '4A ', 'Az4 ',
+                     ' A9 ', ' Ab9 ', ' A#9 ', ' H4 ', ' Hb4 ', ' H#4 ', ' 4A ', ' Az4 ']) {
     test.assertFalse(noteMap.has(value));
+    test.assertFalse(noteMap.has(value.toLowerCase()));
+    test.assertFalse(noteMap.has(value.trim().toLowerCase()));
   }
 
   for (let [note, expected] of [
@@ -34,6 +39,17 @@ function test_NoteMap() {
     ['A#4', '466.16'],
     ['Ab4', '415.30'],
     ['Bb4', '466.16'],
+    ['a4', '440.00'],
+    ['c4', '261.63'],
+    ['c0', '16.35'],
+    ['b8', '7902.13'],
+    ['a#4', '466.16'],
+    ['ab4', '415.30'],
+    ['bb4', '466.16'],
+    ['AB4', '415.30'],
+    ['BB4', '466.16'],
+    ['aB4', '415.30'],
+    ['bB4', '466.16'],
     ['A0', 27.500000000000000],
     ['A#0', 29.135235094880619],
     ['B0', 30.867706328507756],
@@ -122,19 +138,30 @@ function test_NoteMap() {
     ['A#7', 3729.310092144719331],
     ['B7', 3951.066410048992894],
     ['C8', 4186.009044809578154]]) {
-    test.assertTrue(noteMap.has(note));
-    if (typeof expected === 'string') {
-      test.assertEqual(noteMap.get(note).toFixed(2), expected);
+    let key = note.trim().toLowerCase();
+    if (note === key) {
+      test.assertTrue(noteMap.has(note));
     }
     else {
-      test.assertEqual(noteMap.get(note).toFixed(8), expected.toFixed(8));
+      test.assertFalse(noteMap.has(note));
+    }
+    test.assertTrue(noteMap.has(note.trim().toLowerCase()));
+    test.assertTrue(noteMap.has(key));
+    if (typeof expected === 'string') {
+      test.assertEqual(noteMap.get(key).toFixed(2), expected);
+    }
+    else {
+      test.assertEqual(noteMap.get(key).toFixed(8), expected.toFixed(8));
     }
   }
 }
 
 function test_play() {
   test.assertRaises(TypeError, tone.play, 42, 1);
-  for (let value of ['A9', 'Ab9', 'A#9', 'H4', 'Hb4', 'H#4', '4A', 'Az4']) {
+  for (let value of ['A9', 'Ab9', 'A#9', 'H4', 'Hb4', 'H#4', '4A', 'Az4',
+                     ' A9', ' Ab9', ' A#9', ' H4', ' Hb4', ' H#4', ' 4A', ' Az4',
+                     'A9 ', 'Ab9 ', 'A#9 ', 'H4 ', 'Hb4 ', 'H#4 ', '4A ', 'Az4 ',
+                     ' A9 ', ' Ab9 ', ' A#9 ', ' H4 ', ' Hb4 ', ' H#4 ', ' 4A ', ' Az4 ']) {
     test.assertRaises(RangeError, tone.play, value, 1);
   }
   test.assertRaises(TypeError, tone.play, 'A4', 'foobar');
