@@ -1003,6 +1003,17 @@ const tone = (function () {
   const context = new (window.AudioContext || window.webkitAudioContext)();
 
   /*
+   * Convert the hard-coded number of samples in Pygame Zero to durations.
+   *
+   * These constants refer to the stages of the Attack Decay Sustain Release (ADSR) envelope
+   * and not the poorly named DECAY constant.
+   */
+  const SAMPLE_RATE = 22050;
+  const ATTACK = 350 / SAMPLE_RATE;
+  const DECAY = 650 / SAMPLE_RATE;
+  const RELEASE = 2000 / SAMPLE_RATE;
+
+  /*
    * Lazily build the map as needed.
    */
   function populateNotes() {
@@ -1047,6 +1058,11 @@ const tone = (function () {
       return NOTE_MAP;
     },
 
+    /*
+     * Play note for the given duration.
+     *
+     * note is a string and duration is a positive number in seconds.
+     */
     play(note, duration) {
       if (typeof note !== 'string') {
         throw new TypeError('note must be a string. Notes are A-G, are either normal, flat (b) or sharp (#) and of octave 0-8.');
@@ -1060,14 +1076,38 @@ const tone = (function () {
 
       populateNotes();
       let cleaned = note.trim().toLowerCase(),
-          oscillator;
+          envelope = [], gain, oscillator;
       if (NOTE_MAP.has(cleaned)) {
+        // Create the Attack Decay Sustain Release (ADSR) envelope
+        if (duration < (ATTACK + DECAY)) {
+          // If duration is shorter than the Attack and Decay stages,
+          // then there is no Decay stage
+          envelope.push([1, duration * 0.1]);
+          envelope.push([0.9, duration]);
+          envelope.push([0, duration + RELEASE]);
+        }
+        else {
+          envelope.push([1, ATTACK]);
+          envelope.push([0.7, ATTACK + DECAY]);
+          envelope.push([0.7, duration]);
+          envelope.push([0, duration + RELEASE]);
+        }
+
+        gain = context.createGain();
+        gain.connect(context.destination);
+        gain.gain.setValueAtTime(0, context.currentTime);
+        for (let [value, offset] of envelope) {
+          // Pygame Zero linearly interpolates the samples so we do the same
+          gain.gain.linearRampToValueAtTime(value, context.currentTime + offset);
+        }
+
+        // Create the oscillator to generate the actual tone
         oscillator = context.createOscillator();
-        oscillator.connect(context.destination);
+        oscillator.connect(gain);
         oscillator.type = 'sine';
         oscillator.frequency.value = NOTE_MAP.get(cleaned);
         oscillator.start(context.currentTime);
-        oscillator.stop(context.currentTime + duration);
+        oscillator.stop(context.currentTime + duration + RELEASE);
       }
       else {
         throw new RangeError(`Unrecognized note "${ note }". Notes are A-G, are either normal, flat (b) or sharp (#) and of octave 0-8.`);
