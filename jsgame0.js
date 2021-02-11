@@ -701,7 +701,9 @@ const keyboard = (function () {
  * setInterval() so they can be synchronized with the core game loop.
  */
 const clock = (function () {
-  // Array of Arrays containing the scheduled callbacks
+  /*
+   * Array of Arrays containing the scheduled callbacks.
+   */
   let queue = [];
 
   return {
@@ -821,6 +823,9 @@ const sounds = (function () {
 })();
 
 const music = (function () {
+  /*
+   * Map the string track name to its HTML element.
+   */
   const TRACK_MAP = new Map();
 
   let current = null,
@@ -830,6 +835,9 @@ const music = (function () {
       stopped = true,
       volume = 1;
 
+  /*
+   * JavaScript callback for when the end of the media is reached.
+   */
   function deejay(event) {
     if (hasMusicHook) {
       window.on_music_end();
@@ -960,7 +968,8 @@ const music = (function () {
     },
 
     /*
-     * Returns True if the music is playing (and is not paused), False otherwise.
+     * Return true if the music is playing (and is not paused).
+     * False otherwise.
      */
     is_playing() {
       return ((!paused) && (!stopped));
@@ -997,7 +1006,9 @@ const music = (function () {
 })();
 
 const tone = (function () {
-  // Map each note to its frequency in hertz
+  /*
+   * Map the string note in lowercase to its frequency in hertz.
+   */
   const NOTE_MAP = new Map();
 
   const context = new (window.AudioContext || window.webkitAudioContext)();
@@ -2088,7 +2099,9 @@ class Inbetweener {
     return ((Inbetweener._out_bounce_internal(p - 1, 1) * 0.5) + 0.5);
   }
 
-  // Animation queue: Array of Inbetweener objects
+  /*
+   * Animation queue: Array of Inbetweener objects.
+   */
   static queue = [];
 
   /*
@@ -2307,9 +2320,6 @@ const screen = (function () {
     return lines[longest];
   }
 
-  /*
-   * Private state variables
-   */
   let canvas = null,
       width = DEFAULT_WIDTH,
       height = DEFAULT_HEIGHT,
@@ -3186,18 +3196,18 @@ class Surface {
     this.imageData = imageData;
   }
 
-  /*
-   * Return the starting index of the pixel data for coordinates (x, y).
-   */
-  _coordinatesToIndex(x, y) {
-    return (x + (y * this.imageData.width)) * 4;
-  }
-
   get width() {
     return this.imageData.width;
   }
   get height() {
     return this.imageData.height;
+  }
+
+  /*
+   * Return the starting index of the pixel data for coordinates (x, y).
+   */
+  _coordinatesToIndex(x, y) {
+    return (x + (y * this.width)) * 4;
   }
 
   /*
@@ -3217,10 +3227,10 @@ class Surface {
     if (y < 0) {
       return [0, 0, 0, 0];
     }
-    if (this.imageData.width <= x) {
+    if (this.width <= x) {
       return [0, 0, 0, 0];
     }
-    if (this.imageData.height <= y) {
+    if (this.height <= y) {
       return [0, 0, 0, 0];
     }
 
@@ -3252,10 +3262,10 @@ class Surface {
     if (y < 0) {
       return;
     }
-    if (this.imageData.width <= x) {
+    if (this.width <= x) {
       return;
     }
-    if (this.imageData.height <= y) {
+    if (this.height <= y) {
       return;
     }
 

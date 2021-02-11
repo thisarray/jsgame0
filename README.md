@@ -1,7 +1,7 @@
 # jsgame0
 
 jsgame0.js is a collection of JavaScript objects following the Pygame Zero specifications.
-This makes porting Pygame Zero scripts from Python to JavaScript straightforward.
+It makes porting Pygame Zero scripts from Python to JavaScript straightforward.
 There are still language quirks like the [remainder operator(%)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder) that may trip you up.
 The game runs in the browser using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API).
 
@@ -13,8 +13,6 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
 - images, sounds, and music map to the underlying [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement).
   I did not write wrappers for them because for simple operations HTMLMediaElement works the way you expect.
   For more complex operations, wrappers get in the way.
-- There is no tone.
-  This is probably for the best because they can get annoying.
 - There is no storage because the
   [localStorage object](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API) serves the same purpose.
 
@@ -22,7 +20,7 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
 
 jsgame0.js began as an excuse to port the code listings in [Wireframe magazine](https://wfmag.cc).
 Porting forced me to understand the code at a deeper level than just reading it.
-I also was not comfortable with Pygame Zero's use of compile() to run arbitrary Python scripts.
+I also was not comfortable with Pygame Zero's use of compile() to run arbitrary Python scripts on my computer.
 I preferred the JavaScript sandbox which limited what a script could do.
 
 In addition,
@@ -30,20 +28,20 @@ In addition,
 - Pygame Zero uses globals so polluting the global namespace is not a problem.
   (This is a feature not a bug.)
 - Performance does not matter.
-- It is designed for educational environments and emphasizes getting the features right first time.
+- Pygame Zero is designed for educational environments and emphasizes getting the features right first time.
   So the API is very stable.
 - It will all be for nought when [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly) allows Python to run directly in the browser.
 
 ## License
 
-Based on my reading of the pgzero license, jsgame0.js is free to be licensed however I wish because
+Based on my reading of the Pygame Zero license, jsgame0.js is free to be licensed however I wish because
 - It is in a different language.
-- It is not a work produced by combining or linking pgzero.
+- It is not a work produced by combining or linking Pygame Zero.
 
 I chose a MIT license for more freedom.
 
 You can find examples and tests not encumbered by the license in examples and tests, respectively.
-For more, look in the javascript branch of my pgzero fork.
+For more, look in the javascript branch of my Pygame Zero (pgzero) fork.
 
 ## References
 
