@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>boxes</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>boxes</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<h2>Original Python code</h2>
+
+<pre id="original"><code>
+WIDTH = 300
+HEIGHT = 300
+
+
+def draw():
+    r = 255
+    g = 0
+    b = 0
+
+    width = WIDTH
+    height = HEIGHT - 200
+
+    for i in range(20):
+        rect = Rect((0, 0), (width, height))
+        rect.center = 150, 150
+        screen.draw.rect(rect, (r, g, b))
+
+        r -= 10
+        g += 10
+
+        width -= 10
+        height += 10
+
+</code></pre>
+</main>
+
+<script>
+WIDTH = 300;
+HEIGHT = 300;
+
+function draw() {
+  let r = 255,
+      g = 0,
+      b = 0,
+      width = WIDTH,
+      height = HEIGHT - 200;
+
+  for (let i = 0; i < 20; i++) {
+    let rect = new Rect([0, 0], [width, height]);
+    rect.center = [150, 150];
+    screen.draw.rect(rect, [r, g, b]);
+
+    r -= 10;
+    g += 10;
+
+    width -= 10;
+    height += 10;
+  }
+}
+
+window.addEventListener('load', (event) => {
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
