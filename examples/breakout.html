@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>breakout</title>
+  <script src="../../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>breakout</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<h2>Original Python code</h2>
+
+<pre id="original"><code>
+import random
+import colorsys
+from collections import deque
+from math import copysign
+
+WIDTH = 600
+HEIGHT = 800
+BALL_SIZE = 10
+MARGIN = 50
+
+BRICKS_X = 10
+BRICKS_Y = 5
+BRICK_W = (WIDTH - 2 * MARGIN) // BRICKS_X
+BRICK_H = 25
+
+ball = ZRect(WIDTH / 2, HEIGHT / 2, BALL_SIZE, BALL_SIZE)
+bat = ZRect(WIDTH / 2, HEIGHT - 50, 120, 12)
+
+bricks = []
+
+
+def hsv_color(h, s, v):
+    &quot;&quot;&quot;Return an RGB color from HSV.&quot;&quot;&quot;
+    r, g, b = colorsys.hsv_to_rgb(h, s, v)
+    return r * 255, g * 255, b * 255
+
+
+def reset():
+    &quot;&quot;&quot;Reset bricks and ball.&quot;&quot;&quot;
+    # First, let&#x27;s do bricks
+    del bricks[:]
+    for x in range(BRICKS_X):
+        for y in range(BRICKS_Y):
+            brick = ZRect(
+                (x * BRICK_W + MARGIN, y * BRICK_H + MARGIN),
+                (BRICK_W - 1, BRICK_H - 1)
+            )
+            hue = (x + y) / BRICKS_X
+            saturation = (y / BRICKS_Y) * 0.5 + 0.5
+            brick.highlight = hsv_color(hue, saturation * 0.7, 1.0)
+            brick.color = hsv_color(hue, saturation, 0.8)
+            bricks.append(brick)
+
+    # Now reset the ball
+    ball.center = (WIDTH / 2, HEIGHT / 3)
+    ball.vel = (random.uniform(-200, 200), 400)
+
+
+# Reset bricks and ball at start
+reset()
+
+
+def draw():
+    screen.clear()
+    for brick in bricks:
+        screen.draw.filled_rect(brick, brick.color)
+        screen.draw.line(brick.bottomleft, brick.topleft, brick.highlight)
+        screen.draw.line(brick.topleft, brick.topright, brick.highlight)
+
+    screen.draw.filled_rect(bat, &#x27;pink&#x27;)
+    screen.draw.filled_circle(ball.center, BALL_SIZE // 2, &#x27;white&#x27;)
+
+
+def update():
+    # When you have fast moving objects, like the ball, a good trick
+    # is to run the update step several times per frame with tiny time steps.
+    # This makes it more likely that collisions will be handled correctly.
+    for _ in range(3):
+        update_step(1 / 180)
+    update_bat_vx()
+
+
+def update_step(dt):
+    x, y = ball.center
+    vx, vy = ball.vel
+
+    if ball.top &gt; HEIGHT:
+        reset()
+        return
+
+    # Update ball based on previous velocity
+    x += vx * dt
+    y += vy * dt
+    ball.center = (x, y)
+
+    # Check for and resolve collisions
+    if ball.left &lt; 0:
+        vx = abs(vx)
+        ball.left = -ball.left
+    elif ball.right &gt; WIDTH:
+        vx = -abs(vx)
+        ball.right -= 2 * (ball.right - WIDTH)
+
+    if ball.top &lt; 0:
+        vy = abs(vy)
+        ball.top *= -1
+
+    if ball.colliderect(bat):
+        vy = -abs(vy)
+        # Add some spin off the paddle
+        vx += -30 * bat.vx
+    else:
+        # Find first collision
+        idx = ball.collidelist(bricks)
+        if idx != -1:
+            brick = bricks[idx]
+            # Work out what side we collided on
+            dx = (ball.centerx - brick.centerx) / BRICK_W
+            dy = (ball.centery - brick.centery) / BRICK_H
+            if abs(dx) &gt; abs(dy):
+                vx = copysign(abs(vx), dx)
+            else:
+                vy = copysign(abs(vy), dy)
+            del bricks[idx]
+
+    ball.vel = (vx, vy)
+
+
+# Keep bat vx history over 5 frames
+bat.recent_vxs = deque(maxlen=5)
+bat.vx = 0
+bat.prev_centerx = bat.centerx
+
+
+def update_bat_vx():
+    &quot;&quot;&quot;Recalculate average bat vx.&quot;&quot;&quot;
+    x = bat.centerx
+    dx = x - bat.prev_centerx
+    bat.prev_centerx = x
+
+    history = bat.recent_vxs
+    history.append(dx)
+    vx = sum(history) / len(history)
+    bat.vx = min(10, max(-10, vx))
+
+
+def on_mouse_move(pos):
+    x, y = pos
+    bat.centerx = x
+    if bat.left &lt; 0:
+        bat.left = 0
+    elif bat.right &gt; WIDTH:
+        bat.right = WIDTH
+</code></pre>
+</main>
+
+<script>
+WIDTH = 600;
+HEIGHT = 800;
+const BALL_SIZE = 10;
+const MARGIN = 50;
+
+const BRICKS_X = 10;
+const BRICKS_Y = 5;
+const BRICK_W = Math.floor((WIDTH - (2 * MARGIN)) / BRICKS_X);
+const BRICK_H = 25;
+
+var ball, bat, bricks;
+
+/*
+ * Return an RGB color from HSV.
+ */
+function hsv_color(h, s, v) {
+  if (s === 0) {
+    return [v * 255, v * 255, v * 255];
+  }
+  let i = Math.trunc(h * 6),
+      f = (h * 6) - i,
+      p = v * (1 - s),
+      q = v * (1 - (s * f)),
+      t = v * (1 - (s * (1 - f)));
+  i = i % 6;
+  if (i === 0) {
+    return [v * 255, t * 255, p * 255];
+  }
+  if (i === 1) {
+    return [q * 255, v * 255, p * 255];
+  }
+  if (i === 2) {
+    return [p * 255, v * 255, t * 255];
+  }
+  if (i === 3) {
+    return [p * 255, q * 255, v * 255];
+  }
+  if (i === 4) {
+    return [t * 255, p * 255, v * 255];
+  }
+  if (i === 5) {
+    return [v * 255, p * 255, q * 255];
+  }
+  // Cannot get here
+}
+
+/*
+ * Return a random number N such that min <= N < max.
+ */
+function getRandom(min, max) {
+  return (Math.random() * (max - min)) + min;
+}
+
+/*
+ * Reset bricks and ball.
+ */
+function reset() {
+  // First, let's do bricks
+  bricks = [];
+  for (let x = 0; x < BRICKS_X; x++) {
+    for (let y = 0; y < BRICKS_Y; y++) {
+      let brick = new Rect((x * BRICK_W) + MARGIN, (y * BRICK_H) + MARGIN, BRICK_W - 1, BRICK_H - 1),
+          hue = (x + y) / BRICKS_X,
+          saturation = (y * 0.5 / BRICKS_Y) + 0.5;
+      brick.highlight = hsv_color(hue, saturation * 0.7, 1.0);
+      brick.color = hsv_color(hue, saturation, 0.8);
+      bricks.push(brick);
+    }
+  }
+
+  // Now reset the ball
+  ball = new Rect(Math.floor(WIDTH / 2), Math.floor(HEIGHT / 2), BALL_SIZE, BALL_SIZE);
+  ball.center = [Math.floor(WIDTH / 2), Math.floor(HEIGHT / 3)];
+  ball.vel = [getRandom(-200, 200), 400];
+
+  bat = new Rect(Math.floor(WIDTH / 2), HEIGHT - 50, 120, 12);
+  bat.recent_vxs = [];
+  bat.vx = 0;
+  bat.prev_centerx = bat.centerx;
+}
+
+function draw() {
+  screen.clear();
+  for (let brick of bricks) {
+    screen.draw.filled_rect(brick, brick.color);
+    screen.draw.line(brick.bottomleft, brick.topleft, brick.highlight);
+    screen.draw.line(brick.topleft, brick.topright, brick.highlight);
+  }
+
+  screen.draw.filled_rect(bat, 'pink');
+  screen.draw.filled_circle(ball.center, Math.floor(BALL_SIZE / 2), 'white');
+}
+
+function update() {
+  // When you have fast moving objects, like the ball, a good trick
+  // is to run the update step several times per frame with tiny time steps.
+  // This makes it more likely that collisions will be handled correctly.
+  for (let i = 0; i < 3; i++) {
+    update_step(1 / 180);
+  }
+  update_bat_vx();
+}
+
+function update_step(dt) {
+  let [x=0, y=0] = ball.center,
+      [vx=0, vy=0] = ball.vel;
+
+  if (ball.top > HEIGHT) {
+    reset();
+    return;
+  }
+
+  // Update ball based on previous velocity
+  x += vx * dt;
+  y += vy * dt;
+  ball.center = [x, y];
+
+  // Check for and resolve collisions
+  if (ball.left < 0) {
+    vx = Math.abs(vx);
+    ball.left = -ball.left;
+  }
+  else if (ball.right > WIDTH) {
+    vx = -Math.abs(vx);
+    ball.right -= 2 * (ball.right - WIDTH);
+  }
+
+  if (ball.top < 0) {
+    vy = Math.abs(vy);
+    ball.top *= -1;
+  }
+
+  if (ball.colliderect(bat)) {
+    vy = -Math.abs(vy);
+    // Add some spin off the paddle
+    vx += -30 * bat.vx;
+  }
+  else {
+    // Find first collision
+    let idx = ball.collidelist(bricks),
+        brick, dx, dy;
+    if (idx !== -1) {
+      brick = bricks[idx];
+      // Work out what side we collided on
+      dx = (ball.centerx - brick.centerx) / BRICK_W;
+      dy = (ball.centery - brick.centery) / BRICK_H;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        vx = (dx < 0) ? -Math.abs(vx) : Math.abs(vx);
+      }
+      else {
+        vy = (dy < 0) ? -Math.abs(vy) : Math.abs(vy);
+      }
+      bricks.splice(idx, 1);
+    }
+  }
+
+  ball.vel = [vx, vy];
+}
+
+/*
+ * Recalculate average bat vx.
+ */
+function update_bat_vx() {
+  let x = bat.centerx,
+      dx = x - bat.prev_centerx,
+      vx;
+  bat.prev_centerx = x;
+
+  bat.recent_vxs.push(dx);
+  // Keep bat vx history over 5 frames
+  while (bat.recent_vxs.length > 5) {
+    bat.recent_vxs.shift();
+  }
+  vx = bat.recent_vxs.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+  vx /= bat.recent_vxs.length;
+  bat.vx = Math.min(10, Math.max(-10, vx));
+}
+
+function on_mouse_move(pos) {
+  let [x=0, y=0] = pos;
+  bat.centerx = x;
+  if (bat.left < 0) {
+    bat.left = 0;
+  }
+  else if (bat.right > WIDTH) {
+    bat.right = WIDTH;
+  }
+}
+
+window.addEventListener('load', (event) => {
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
