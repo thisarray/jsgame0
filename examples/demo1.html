@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fading Green!</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>Fading Green!</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<h2>Original Python code</h2>
+
+<pre id="original"><code>
+WIDTH = 500
+HEIGHT = 100
+TITLE = &quot;Fading Green!&quot;
+
+c = 0
+
+
+def draw():
+    screen.fill((0, c, 0))
+
+
+def update(dt):
+    global c, HEIGHT
+    c = (c + 1) % 256
+    if c == 255:
+        HEIGHT += 10
+
+
+def on_mouse_down(button, pos):
+    print(&quot;Mouse button&quot;, button, &quot;clicked at&quot;, pos)
+
+
+</code></pre>
+</main>
+
+<script>
+WIDTH = 500;
+HEIGHT = 100;
+TITLE = "Fading Green!";
+
+var c;
+
+function reset() {
+  HEIGHT = 100;
+  c = 0;
+}
+
+function draw() {
+  screen.fill([0, c, 0]);
+}
+
+function update(dt) {
+  c = (c + 1) % 256;
+  if (c === 255) {
+    HEIGHT += 10;
+  }
+}
+
+function on_mouse_down(pos, button) {
+  console.log(`Mouse button ${ button } clicked at ${ pos }`);
+}
+
+window.addEventListener('load', (event) => {
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
