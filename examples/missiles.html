@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>missiles</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>missiles</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<h2>Original Python code</h2>
+
+<pre id="original"><code>
+import random
+from collections import deque
+from itertools import tee
+from math import sin, floor
+WIDTH = 800
+HEIGHT = 400
+
+GRAVITY = 5
+TRAIL_LENGTH = 500
+WIND_SCALE = 8
+WIND_AMOUNT_X = 2.5
+WIND_AMOUNT_Y = 1.5
+
+TRAIL_BRIGHTNESS = 100
+FLARE_COLOR = (255, 220, 160)
+
+missiles = []
+
+
+class Missile:
+    def __init__(self, x, vx, y=0, vy=20):
+        self.x = x
+        self.y = y
+        self.vx = vx
+        self.vy = vy
+        self.trail = deque(maxlen=TRAIL_LENGTH)
+        self.t = random.uniform(0, 3)
+
+    def step(self, dt):
+        self.t += dt
+        uy = self.vy
+        self.vy += GRAVITY * dt
+        self.y += 0.5 * (uy + self.vy) * dt
+
+        self.x += self.vx * dt
+        self.trail.appendleft((self.x, self.y))
+
+        for i, (x, y) in enumerate(self.trail):
+            nx = x + wind_x.get((x, y)) * dt
+            ny = y + wind_y.get((x, y)) * dt
+            self.trail[i] = nx, ny
+
+        # If the trail is off the bottom of the screen, kill the missile
+        if self.trail[-1][1] &gt; HEIGHT:
+            missiles.remove(self)
+            return
+
+    def draw(self):
+        for i in range(len(self.trail)):
+            if i + 1 == len(self.trail):
+                break
+            start = self.trail[i]
+            end = self.trail[i + 1]
+            c = TRAIL_BRIGHTNESS * (1.0 - i / TRAIL_LENGTH)
+            color = (c, c, c)
+            screen.draw.line(start, end, color)
+        screen.draw.filled_circle((self.x, self.y), 2, FLARE_COLOR)
+
+        # This small flickering lens flare makes it look like the
+        # missile&#x27;s exhaust is very bright.
+        flare_length = 4 + sin(self.t) * 2 + sin(self.t * 5) * 1
+        screen.draw.line(
+            (self.x - flare_length, self.y),
+            (self.x + flare_length, self.y),
+            FLARE_COLOR
+        )
+
+
+class Perlin:
+    def __init__(self, amount=1.0):
+        self.seed = random.randrange(1000000)
+        self.amount = amount
+
+    def _rnd(self, i):
+        n = 982451653
+        d = 67867967
+        return (self.seed + i) * n % d / d - 0.5
+
+    def _get(self, p):
+        n = int(floor(p / WIND_SCALE))
+        frac = (p - n * WIND_SCALE) / WIND_SCALE
+        l = self._rnd(n)
+        r = self._rnd(n + 1)
+        return r * frac + (1.0 - frac) * l
+
+    def get(self, p):
+        x, y = p
+        return (self._get(x) - self._get(y + 1000000)) * self.amount
+
+
+wind_x = Perlin(WIND_AMOUNT_X)
+wind_y = Perlin(WIND_AMOUNT_Y)
+
+
+def draw():
+    screen.clear()
+    for m in missiles:
+        m.draw()
+
+
+def update(dt):
+    for m in list(missiles):
+        m.step(dt)
+
+
+def new_missile():
+    m = Missile(x=random.randrange(600, 800), vx=random.uniform(-70, -10))
+    missiles.append(m)
+
+
+new_missile()
+clock.schedule_interval(new_missile, 5)
+</code></pre>
+</main>
+
+<script>
+WIDTH = 800;
+HEIGHT = 400;
+
+const GRAVITY = 5;
+const TRAIL_LENGTH = 500;
+const WIND_SCALE = 8;
+const WIND_AMOUNT_X = 2.5;
+const WIND_AMOUNT_Y = 1.5;
+
+const TRAIL_BRIGHTNESS = 100;
+const FLARE_COLOR = [255, 220, 160];
+
+var missiles, wind_x, wind_y;
+
+/*
+ * Return a random number N such that min <= N < max.
+ */
+function getRandom(min, max) {
+  return (Math.random() * (max - min)) + min;
+}
+
+/*
+ * Return a random integer N such that min <= N < max.
+ */
+function getRandomInteger(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor((Math.random() * (max - min)) + min);
+}
+
+class Missile {
+  constructor(x, vx, y = 0, vy = 20) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.trail = [];
+    this.t = getRandom(0, 3);
+  }
+
+  step(dt) {
+    this.t += dt;
+    let uy = this.vy,
+        i = 0;
+    this.vy += GRAVITY * dt;
+    this.y += 0.5 * (uy + this.vy) * dt;
+
+    this.x += this.vx * dt;
+    this.trail.unshift([this.x, this.y]);
+    while (this.trail.length > TRAIL_LENGTH) {
+      this.trail.pop();
+    }
+
+    for (let [x, y] of this.trail.slice()) {
+      let nx = x + wind_x.get([x, y]) * dt,
+          ny = y + wind_y.get([x, y]) * dt;
+      this.trail[i] = [nx, ny];
+      i++;
+    }
+
+    // If the trail is off the bottom of the screen, kill the missile
+    if (this.trail[this.trail.length-1][1] > HEIGHT) {
+      missiles.delete(this);
+    }
+  }
+
+  draw() {
+    for (let i = 0; i < this.trail.length; i++) {
+      if ((i + 1) === this.trail.length) {
+        break;
+      }
+      let start = this.trail[i],
+          end = this.trail[i+1],
+          c = TRAIL_BRIGHTNESS * (1.0 - i / TRAIL_LENGTH),
+          color = [c, c, c];
+      screen.draw.line(start, end, color);
+    }
+    screen.draw.filled_circle([this.x, this.y], 2, FLARE_COLOR);
+
+    // This small flickering lens flare makes it look like the
+    // missile's exhaust is very bright.
+    let flare_length = 4 + (Math.sin(this.t) * 2) + Math.sin(this.t * 5);
+    screen.draw.line([this.x - flare_length, this.y], [this.x + flare_length, this.y], FLARE_COLOR);
+  }
+}
+
+class Perlin {
+  constructor(amount = 1.0) {
+    this.seed = getRandomInteger(0, 1000000);
+    this.amount = amount;
+  }
+
+  _rnd(i) {
+    let n = 982451653,
+        d = 67867967;
+    return (this.seed + i) * n % d / d - 0.5;
+  }
+
+  _get(p) {
+    let n = Math.floor(p / WIND_SCALE),
+        frac = (p - n * WIND_SCALE) / WIND_SCALE,
+        l = this._rnd(n),
+        r = this._rnd(n + 1);
+    return r * frac + (1.0 - frac) * l;
+  }
+
+  get(p) {
+    let [x=0, y=0] = p;
+    return (this._get(x) - this._get(y + 1000000)) * this.amount;
+  }
+}
+
+function reset() {
+  missiles = new Set();
+
+  wind_x = new Perlin(WIND_AMOUNT_X);
+  wind_y = new Perlin(WIND_AMOUNT_Y);
+
+  new_missile();
+  clock.schedule_interval(new_missile, 5);
+}
+
+function draw() {
+  screen.clear();
+  for (let m of missiles) {
+    m.draw();
+  }
+}
+
+function update(dt) {
+  for (let m of missiles) {
+    m.step(dt);
+  }
+}
+
+function new_missile() {
+  let m = new Missile(getRandomInteger(600, 800), getRandom(-70, -10));
+  missiles.add(m);
+}
+
+window.addEventListener('load', (event) => {
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
