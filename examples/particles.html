@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>particles</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>particles</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<h2>Original Python code</h2>
+
+<pre id="original"><code>
+import random
+import math
+
+
+WIDTH, HEIGHT = 800, 600  # set the window dimensions
+
+DRAG = 0.7  # fraction of speed lost per second
+MAX_AGE = 3  # lifetime of a particle
+
+# Control the radius distribution
+# &lt;0.5 = weighted towards the outside
+# 0.5 = uniform coverage of the circle
+# &gt;0.5 = weighted towards the inside
+RADIUS_EXP = 0.5
+TAU = math.pi * 2  # math.tau is available in python 3.6+
+
+# A global list to hold all our particles
+particles = []
+
+
+def explode(x, y, speed=300, num=200):
+    &quot;&quot;&quot;Create a particle explosion at (x, y).
+
+    `num` is the number of particles to spawn.
+    `speed` is the maximum speed of a particle in pixels per second.
+
+    &quot;&quot;&quot;
+    age = 0
+    # Pick a random colour
+    color = tuple(random.randint(128, 255) for _ in range(3))
+    for _ in range(num):  # spawn 300 particles
+        # Choose a random angle anywhere in the circle
+        angle = random.uniform(0, TAU)
+        # Choose a random radius using a controllable distribution
+        radius = random.uniform(0, 1) ** RADIUS_EXP
+
+        # Convert angle/radius to a cartesian vector
+        vx = speed * radius * math.sin(angle)
+        vy = speed * radius * math.cos(angle)
+        particles.append((x, y, vx, vy, age, color))  # add it
+
+
+def draw():
+    &quot;&quot;&quot;Draw all the particles as pixels.&quot;&quot;&quot;
+    screen.clear()
+    for x, y, *_, color in particles:  # we only care about position and color
+        screen.surface.set_at((round(x), round(y)), color)
+
+
+def update(dt):
+    &quot;&quot;&quot;Update all particles. dt is the time step in seconds.&quot;&quot;&quot;
+    new_particles = []
+    for (x, y, vx, vy, age, color) in particles:
+        age += dt  # update the age of the particle
+        if age &gt; MAX_AGE:
+            continue  # particle is expired, don&#x27;t keep it
+
+        drag = DRAG ** dt  # amount of drag that is applied
+        vx *= drag  # apply drag to the velocity vector
+        vy *= drag
+        x += vx * dt  # move the particle according to its velocity
+        y += vy * dt
+
+        if age &gt; 2:  # If the particle is getting old, fade it
+            color = tuple(round(c - 100 * dt) for c in color)
+
+        new_particles.append((x, y, vx, vy, age, color))  # keep it
+    particles[:] = new_particles  # write back the particles we&#x27;re keeping
+
+
+def explode_random():
+    &quot;&quot;&quot;Create an explosion at a random position on the screen.&quot;&quot;&quot;
+    x = random.randrange(WIDTH)
+    y = random.randrange(HEIGHT)
+    explode(x, y)
+
+
+clock.schedule_interval(explode_random, 1.0) # Schedule explosions every 1s
+</code></pre>
+</main>
+
+<script>
+WIDTH = 800;
+HEIGHT = 600;  // set the window dimensions
+
+const DRAG = 0.7;  // fraction of speed lost per second
+const MAX_AGE = 3;  // lifetime of a particle
+
+/*
+ * Control the radius distribution
+ * <0.5 = weighted towards the outside
+ * 0.5 = uniform coverage of the circle
+ * >0.5 = weighted towards the inside
+ */
+const RADIUS_EXP = 0.5;
+const TAU = Math.PI * 2;  // math.tau is available in python 3.6+
+
+// A global list to hold all our particles
+var particles;
+
+/*
+ * Return a random number N such that min <= N < max.
+ */
+function getRandom(min, max) {
+  return (Math.random() * (max - min)) + min;
+}
+
+/*
+ * Return a random integer N such that min <= N < max.
+ */
+function getRandomInteger(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor((Math.random() * (max - min)) + min);
+}
+
+/*
+ * Create a particle explosion at (x, y).
+ *
+ * `num` is the number of particles to spawn.
+ * `speed` is the maximum speed of a particle in pixels per second.
+ */
+function explode(x, y, speed = 300, num = 200) {
+  const age = 0;
+  // Pick a random colour
+  const color = [getRandomInteger(128, 256), getRandomInteger(128, 256), getRandomInteger(128, 256)];
+  for (let i = 0; i < num; i++) {  // spawn 300 particles
+        // Choose a random angle anywhere in the circle
+    let angle = getRandom(0, TAU),
+        // Choose a random radius using a controllable distribution
+        radius = Math.pow(Math.random(), RADIUS_EXP),
+
+        // Convert angle/radius to a cartesian vector
+        vx = speed * radius * Math.sin(angle),
+        vy = speed * radius * Math.cos(angle);
+     particles.push([x, y, vx, vy, age, color]);  // add it
+  }
+}
+
+/*
+ * Draw all the particles as 1x1 Rect instead of manipulating pixels.
+ */
+function draw() {
+  screen.clear();
+  for (let [x, y, vx, vy, age, color] of particles) {  // we only care about position and color
+    screen.draw.filled_rect(new Rect(Math.round(x), Math.round(y), 1, 1), color);
+  }
+}
+
+/*
+ * Update all particles. dt is the time step in seconds.
+ */
+function update(dt) {
+  let newParticles = [];
+  for (let [x, y, vx, vy, age, color] of particles) {
+    age += dt;  // update the age of the particle
+    if (age > MAX_AGE) {
+      continue;  // particle is expired, don't keep it
+    }
+
+    let drag = Math.pow(DRAG, dt);  // amount of drag that is applied
+    vx *= drag;  // apply drag to the velocity vector
+    vy *= drag;
+    x += vx * dt;  // move the particle according to its velocity
+    y += vy * dt;
+
+    if (age > 2) {  // If the particle is getting old, fade it
+      color = color.map(c => Math.round(c - (100 * dt)));
+    }
+
+    newParticles.push([x, y, vx, vy, age, color]);  // keep it
+  }
+  particles = newParticles;  // write back the particles we're keeping
+}
+
+/*
+ * Create an explosion at a random position on the screen.
+ */
+function explode_random() {
+  let x = getRandomInteger(0, WIDTH),
+      y = getRandomInteger(0, HEIGHT);
+  explode(x, y);
+}
+
+function reset() {
+  particles = [];
+  clock.schedule_interval(explode_random, 1.0); // Schedule explosions every 1s
+}
+
+window.addEventListener('load', (event) => {
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
