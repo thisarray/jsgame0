@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test storage (localStorage)</title>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test storage (localStorage)</h1>
+
+<script>
+localStorage['level'] = 10;
+localStorage.setItem('player_name', 'Daniel');
+localStorage.setItem(42, 'foobar');
+localStorage.setItem('foo', {bar: 'baz'});
+
+// keys and the values are always strings
+test.assertEqual(localStorage.getItem('level'), '10');
+test.assertEqual(localStorage['player_name'], 'Daniel');
+// integer keys will be automatically converted to strings
+test.assertEqual(localStorage.getItem('42'), 'foobar');
+test.assertEqual(localStorage.getItem('foo'), '[object Object]');
+
+localStorage.clear();
+test.assertIs(localStorage.getItem('level'), null);
+test.assertIs(localStorage['player_name'], undefined);
+</script>
+</body>
+
+</html>
