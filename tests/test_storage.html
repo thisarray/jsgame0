@@ -24,7 +24,7 @@ localStorage.setItem('player_name', 'Daniel');
 localStorage.setItem(42, 'foobar');
 localStorage.setItem('foo', {bar: 'baz'});
 
-// keys and the values are always strings
+// keys and values are always strings
 test.assertEqual(localStorage.getItem('level'), '10');
 test.assertEqual(localStorage['player_name'], 'Daniel');
 // integer keys will be automatically converted to strings

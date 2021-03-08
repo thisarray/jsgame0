@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lander</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>lander</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<h2>Original Python code</h2>
+
+<pre id="original"><code>
+import random, math
+
+&quot;&quot;&quot;
+Pi Lander
+ * A basic Lunar Lander style game in Pygame Zero
+ * Run with &#x27;pgzrun pi_lander.py&#x27;, control with the LEFT, RIGHT and UP arrow keys
+ * Author Tim Martin: www.Tim-Martin.co.uk
+ * Licence: Creative Commons Attribution-ShareAlike 4.0 International
+ * http://creativecommons.org/licenses/by-sa/4.0/
+&quot;&quot;&quot;
+
+WIDTH = 800 # Screen width
+HEIGHT = 600 # Screen height
+
+class LandingSpotClass:
+    &quot;&quot;&quot; Each instance defines a landing spot by where it starts, how big it is and how many points it&#x27;s worth &quot;&quot;&quot;
+    landing_spot_sizes = [&quot;small&quot;, &quot;medium&quot;, &quot;large&quot;]
+    def __init__(self, starting_step):
+        self.starting = starting_step
+        random_size = random.choice(LandingSpotClass.landing_spot_sizes) # And randomly choose size
+        if random_size == &quot;small&quot;:
+            self.size = 4
+            self.bonus = 8
+        elif random_size == &quot;medium&quot;:
+            self.size = 10
+            self.bonus = 4
+        else: # Large
+            self.size = 20
+            self.bonus = 2
+    def get_within_landing_spot(self, step):
+        if (step &gt;= self.starting) and (step &lt; self.starting + self.size):
+            return True
+        return False
+
+class LandscapeClass:
+    &quot;&quot;&quot; Stores and generates the landscape, landing spots and star field &quot;&quot;&quot;
+    step_size = 3 # Landscape is broken down into steps. Define number of pixels on the x axis per step.
+    world_steps = int(WIDTH/step_size) # How many steps can we fit horizontally on the screen
+    small_height_change = 3 # Controls how bumpy the landscape is
+    large_height_change = 10 # Controls how steep the landscape is
+    features = [&quot;mountain&quot;,&quot;valley&quot;,&quot;field&quot;] # What features to generate
+    n_stars = 30 # How many stars to put in the background
+    n_spots = 4 # Max number of landing spots to generate
+    def __init__(self):
+        self.world_height = [] # Holds the height of the landscape at each step
+        self.star_locations = [] # Holds the x and y location of the stars
+        self.landing_spots = [] # Holds the landing spots
+    def get_within_landing_spot(self, step):
+        &quot;&quot;&quot; Calculate if a given step is within any of the landing spots &quot;&quot;&quot;
+        for spot in self.landing_spots:
+            if spot.get_within_landing_spot(step) == True:
+                return True
+        return False
+    def get_landing_spot_bonus(self, step):
+        for spot in self.landing_spots:
+            if spot.get_within_landing_spot(step) == True:
+                return spot.bonus
+        return 0
+    def reset(self):
+        &quot;&quot;&quot; Generates a new landscape &quot;&quot;&quot;
+        # First: Choose which steps of the landscape will be landing spots
+        del self.landing_spots[:] # Delete any previous LandingSpotClass objects
+        next_spot_start = 0
+        # Move from left to right adding new landing spots until either
+        # n_spots spots have been placed or we run out of space in the world
+        while len(self.landing_spots) &lt; LandscapeClass.n_spots and next_spot_start &lt; LandscapeClass.world_steps:
+            next_spot_start += random.randint(10, 50) # Randomly choose location to start landing spot
+            new_landing_spot = LandingSpotClass(next_spot_start) # Make a new landing object at this spot
+            self.landing_spots.append( new_landing_spot ) # And store it in our list
+            next_spot_start += new_landing_spot.size # Then take into account its size before choosing the next
+        # Second: Randomise the world map
+        del self.world_height[:] # Clear any previous world height data
+        feature_steps = 0 # Keep track of how many steps we are into a feature
+        self.world_height.append(random.randint(300, 500)) # Start the landscape between 300 and 500 pixels down
+        for step in range(1, LandscapeClass.world_steps):
+            # If feature_step is zero, we need to choose a new feature and how long it goes on for
+            if feature_steps == 0:
+                feature_steps = random.randint(25, 75)
+                current_feature = random.choice(LandscapeClass.features)
+            # Generate the world by setting the range of random numbers, must be flat if in a landing spot
+            if self.get_within_landing_spot(step) == True:
+                max_up = 0 # Flat
+                max_down = 0 # Flat
+            elif current_feature == &quot;mountain&quot;:
+                max_up = LandscapeClass.small_height_change
+                max_down = -LandscapeClass.large_height_change
+            elif current_feature == &quot;valley&quot;:
+                max_up = LandscapeClass.large_height_change
+                max_down = -LandscapeClass.small_height_change
+            elif current_feature == &quot;field&quot;:
+                max_up = LandscapeClass.small_height_change
+                max_down = -LandscapeClass.small_height_change
+            # Generate the next piece of the landscape
+            current_height = self.world_height[step-1]
+            next_height = current_height + random.randint(max_down, max_up)
+            self.world_height.append(next_height)
+            feature_steps -= 1
+            # Stop mountains getting too high, or valleys too low
+            if next_height &gt; 570:
+                current_feature = &quot;mountain&quot; # Too low! Force a mountain
+            elif next_height &lt; 200:
+                current_feature = &quot;valley&quot; # Too high! Force a valley
+        # Third: Randomise the star field
+        del self.star_locations[:]
+        for star in range(0, LandscapeClass.n_stars):
+            star_step = random.randint(0, LandscapeClass.world_steps-1)
+            star_x = star_step * LandscapeClass.step_size
+            star_y = random.randint( 0, self.world_height[star_step] ) # Keep the stars above the landscape
+            self.star_locations.append( (star_x, star_y) )
+
+class ShipClass:
+    &quot;&quot;&quot; Holds the state of the player&#x27;s ship and handles movement &quot;&quot;&quot;
+    max_fuel = 1000 # How much fuel the player starts with
+    booster_power = 0.05 # Power of the ship&#x27;s thrusters
+    rotate_speed = 10 # How fast the ship rotates in degrees per frame
+    gravity = [0., 0.01] # Strength of gravity in the x and y directions
+    def __init__(self):
+        &quot;&quot;&quot; Create the variables which will describe the players ship &quot;&quot;&quot;
+        self.angle = 0 # The angle the ship is facing 0 - 360 degrees
+        self.altitude = 0 # The number of pixels the ship is above the ground
+        self.booster = False # True if the player is firing their booster
+        self.fuel = 0 # Amount of fuel remaining
+        self.position = [0,0] # The x and y coordinates of the players ship
+        self.velocity = [0,0] # The x and y velocity of the players ship
+        self.acceleration = [0,0] # The x and y acceleration of the players ship
+    def reset(self):
+        &quot;&quot;&quot; Set the ships position, velocity and angle to their new-game values &quot;&quot;&quot;
+        self.position = [750., 100.] # Always start at the same spot
+        self.velocity = [ -random.random(), random.random() ] # But with some initial speed
+        self.acceleration = [0., 0.] # No initial acceleration (except gravity of course)
+        self.angle = random.randint(0, 360) # And pointing in a random direction
+        self.fuel = ShipClass.max_fuel # Fill up fuel tanks
+    def rotate(self, direction):
+        &quot;&quot;&quot; Rotate the players ship and keep the angle within the range 0 - 360 degrees &quot;&quot;&quot;
+        if direction == &quot;left&quot;:
+            self.angle -= ShipClass.rotate_speed
+        elif direction == &quot;right&quot;:
+            self.angle += ShipClass.rotate_speed
+        if self.angle &gt; 360: # Remember than adding or subtracting 360 degrees does not change the angle
+            self.angle -= 360
+        elif self.angle &lt; 0:
+            self.angle += 360
+    def booster_on(self):
+        &quot;&quot;&quot; When booster is firing we accelerate in the opposite direction, 180 degrees, from the way the ship is facing &quot;&quot;&quot;
+        self.booster = True
+        self.acceleration[0] = ShipClass.booster_power * math.sin( math.radians(self.angle + 180) )
+        self.acceleration[1] = ShipClass.booster_power * math.cos( math.radians(self.angle + 180) )
+        self.fuel -= 2;
+    def booster_off(self):
+        &quot;&quot;&quot; When the booster is not firing we do not accelerate &quot;&quot;&quot;
+        self.booster = False
+        self.acceleration[0] = 0.
+        self.acceleration[1] = 0.
+    def update_physics(self):
+        &quot;&quot;&quot; Update ship physics in X and Y, apply acceleration (and gravity) to the velocity and velocity to the position &quot;&quot;&quot;
+        for axis in range(0,2):
+            self.velocity[axis] += ShipClass.gravity[axis]
+            self.velocity[axis] += self.acceleration[axis]
+            self.position[axis] += self.velocity[axis]
+        # Update player altitude. Note that (LanscapeClass.step_size * 3) is the length of the ship&#x27;s legs
+        ship_step = int(self.position[0]/LandscapeClass.step_size)
+        if ship_step &lt; LandscapeClass.world_steps:
+            self.altitude = game.landscape.world_height[ship_step] - self.position[1] - (LandscapeClass.step_size * 3)
+    def get_out_of_bounds(self):
+        &quot;&quot;&quot; Check if the player has hit the ground or gone off the sides &quot;&quot;&quot;
+        if self.altitude &lt;= 0 or self.position[0] &lt;= 0 or self.position[0] &gt;= WIDTH:
+            return True
+        return False
+
+class GameClass:
+    &quot;&quot;&quot; Holds main game data, including the ship and landscape objects. Checks for game-over &quot;&quot;&quot;
+    def __init__(self):
+        self.time = 0. # Time spent playing in seconds
+        self.score = 0 # Player&#x27;s score
+        self.game_speed = 30 # How fast the game should run in frames per second
+        self.time_elapsed = 0. # Time since the last frame was changed
+        self.blink = True # True if blinking text is to be shown
+        self.n_frames = 0 # Number of frames processed
+        self.game_on = False # True if the game is being played
+        self.game_message = &quot;PI   LANDER\nPRESS SPACE TO START&quot; # Start of game message
+        self.ship = ShipClass() # Make a object of the ShipClass type
+        self.landscape = LandscapeClass()
+        self.reset() # Start the game with a fresh landscape and ship
+    def reset(self):
+        self.time = 0.
+        self.ship.reset()
+        self.landscape.reset()
+    def check_game_over(self):
+        &quot;&quot;&quot; Check if the game is over and update the game state if so &quot;&quot;&quot;
+        if self.ship.get_out_of_bounds() == False:
+            return # Game is not over
+        self.game_on = False # Game has finished. But did we win or loose?
+        # Check if the player looses. This is if the ship&#x27;s angle is &gt; 20 degrees
+        # the ship is not over a landing site, is moving too fast or is off the side of the screen
+        ship_step = int(self.ship.position[0]/LandscapeClass.step_size)
+        if self.ship.position[0] &lt;= 0 \
+           or self.ship.position[0] &gt;= WIDTH \
+           or self.landscape.get_within_landing_spot(ship_step) == False \
+           or abs(self.ship.velocity[0]) &gt; .5 \
+           or abs(self.ship.velocity[1]) &gt; .5 \
+           or (self.ship.angle &gt; 20 and self.ship.angle &lt; 340):
+            self.game_message = &quot;YOU JUST DESTROYED A 100 MEGABUCK LANDER\n\nLOOSE 250 POINTS\n\nPRESS SPACE TO RESTART&quot;
+            self.score -= 250
+        else: # If the player has won! Update their score based on the amount of remaining fuel and the landing bonus
+            points = self.ship.fuel / 10
+            points *= self.landscape.get_landing_spot_bonus(ship_step)
+            self.score += points
+            self.game_message = &quot;CONGRATULATIONS\nTHAT WAS A GREAT LANDING!\n\n&quot; + str(round(points)) + &quot; POINTS\n\nPRESS SPACE TO RESTART&quot;
+
+# Create the game object
+game = GameClass()
+
+def draw():
+    &quot;&quot;&quot;
+    Draw the game window on the screen in the following order:
+    start message, mountain range, bonus points, stars, statistics, player&#x27;s ship
+    &quot;&quot;&quot;
+    screen.fill(&quot;black&quot;)
+    size = LandscapeClass.step_size
+
+    if game.game_on == False:
+        screen.draw.text(game.game_message, center=(WIDTH/2, HEIGHT/5), align=&quot;center&quot;)
+
+    # Get the x and y coordinates of each step of the landscape and draw it as a straight line
+    for step in range(0, game.landscape.world_steps - 1):
+        x_start = size * step
+        x_end   = size * (step + 1)
+        y_start = game.landscape.world_height[step]
+        y_end   = game.landscape.world_height[step + 1]
+        screen.draw.line( (x_start, y_start), (x_end, y_end), &quot;white&quot; )
+        # Every second we flash the landing spots with a thicker line by drawing a narrow rectangle
+        if (game.blink == True or game.game_on == False) and game.landscape.get_within_landing_spot(step) == True:
+            screen.draw.filled_rect( Rect(x_start-size, y_start-1, size, 3), &quot;white&quot; )
+
+    # Draw the bonus point notifier
+    if game.blink == True or game.game_on == False:
+        for spot in game.landscape.landing_spots:
+            x_text = spot.starting * size
+            y_text = game.landscape.world_height[ spot.starting ] + 10 # The extra 10 pixels puts the text below the landscape
+            screen.draw.text(str(spot.bonus) + &quot;x&quot;, (x_text,y_text), color=&quot;white&quot;)
+
+    # Draw the stars
+    for star in game.landscape.star_locations:
+        screen.draw.line( star, star, &quot;white&quot; )
+
+    # Draw the stats
+    screen.draw.text(&quot;SCORE: &quot; + str(round(game.score)), (10,10), color=&quot;white&quot;, background=&quot;black&quot;)
+    screen.draw.text(&quot;TIME: &quot; + str(round(game.time)), (10,25), color=&quot;white&quot;, background=&quot;black&quot;)
+    screen.draw.text(&quot;FUEL: &quot; + str(game.ship.fuel), (10,40), color=&quot;white&quot;, background=&quot;black&quot;)
+    screen.draw.text(&quot;ALTITUDE: &quot; + str(round(game.ship.altitude)), (WIDTH-230,10), color=&quot;white&quot;, background=&quot;black&quot;)
+    screen.draw.text(&quot;HORIZONTAL SPEED: {0:.2f}&quot;.format(game.ship.velocity[0]), (WIDTH-230,25), color=&quot;white&quot;, background=&quot;black&quot;)
+    screen.draw.text(&quot;VERTICAL SPEED: {0:.2f}&quot;.format(-game.ship.velocity[1]), (WIDTH-230,40), color=&quot;white&quot;, background=&quot;black&quot;)
+
+    screen.draw.circle( game.ship.position, size*2, &quot;yellow&quot; ) # Draw the player
+    # Use sin and cosine functions to draw the ship legs and booster at the correct angle
+    # Requires the values in radians (0 to 2*pi) rather than in degrees (0 to 360)
+    sin_angle = math.sin( math.radians(game.ship.angle - 45) ) # Legs are drawn 45 degrees either side of the ship&#x27;s angle
+    cos_angle = math.cos( math.radians(game.ship.angle - 45) )
+    screen.draw.line( game.ship.position, (game.ship.position[0] + (sin_angle*size*3), game.ship.position[1] + (cos_angle*size*3)), &quot;yellow&quot; )
+    sin_angle = math.sin( math.radians(game.ship.angle + 45) )
+    cos_angle = math.cos( math.radians(game.ship.angle + 45) )
+    screen.draw.line( game.ship.position, (game.ship.position[0] + (sin_angle*size*3), game.ship.position[1] + (cos_angle*size*3)), &quot;yellow&quot; )
+    if game.ship.booster == True:
+        sin_angle = math.sin( math.radians(game.ship.angle) ) # Booster is drawn at the same angle as the ship, just under it
+        cos_angle = math.cos( math.radians(game.ship.angle) )
+        screen.draw.filled_circle( (game.ship.position[0] + (sin_angle*size*3), game.ship.position[1] + (cos_angle*size*3)), size, &quot;orange&quot; )
+
+def update(detlatime):
+    &quot;&quot;&quot; Updates the game physics 30 times every second  &quot;&quot;&quot;
+    game.time_elapsed += detlatime
+    if game.time_elapsed &lt; 1./game.game_speed:
+        return # A 30th of a second has not passed yet
+    game.time_elapsed -= 1./game.game_speed
+
+    # New frame - do all the simulations
+    game.n_frames += 1
+    if game.n_frames % game.game_speed == 0: # If n_frames is an exact multiple of the game FPS: so once per second
+        game.blink = not game.blink # Invert blink so True becomes False or False becomes True
+
+    # Start the game if the player presses space when the game is not on
+    if keyboard.space and game.game_on == False:
+        game.game_on = True
+        game.reset()
+    elif game.game_on == False:
+        return
+
+    # If the game is on, update the movement and the physics
+    if keyboard.left: # Change space ship rotation
+        game.ship.rotate(&quot;left&quot;)
+    elif keyboard.right:
+        game.ship.rotate(&quot;right&quot;)
+
+    if keyboard.up and game.ship.fuel &gt; 0: # Fire boosters if the player has enough fuel
+        game.ship.booster_on()
+    else:
+        game.ship.booster_off()
+
+    game.time += detlatime
+    game.ship.update_physics()
+    game.check_game_over()
+</code></pre>
+</main>
+
+<script>
+/*
+ * Pi Lander
+ * * A basic Lunar Lander style game in Pygame Zero
+ * * Run with 'pgzrun pi_lander.py', control with the LEFT, RIGHT and UP arrow keys
+ * * Author Tim Martin: www.Tim-Martin.co.uk
+ * * Licence: Creative Commons Attribution-ShareAlike 4.0 International
+ * * http://creativecommons.org/licenses/by-sa/4.0/
+ */
+
+WIDTH = 800; // Screen width
+HEIGHT = 600; // Screen height
+
+/*
+ * Return a random integer N such that min <= N < max.
+ */
+function getRandomInteger(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor((Math.random() * (max - min)) + min);
+}
+
+/*
+ * Each instance defines a landing spot by where it starts, how big it is and how many points it's worth
+ */
+class LandingSpotClass {
+  static landing_spot_sizes = ["small", "medium", "large"];
+
+  constructor(starting_step) {
+    this.starting = starting_step;
+    let random_size = LandingSpotClass.landing_spot_sizes[getRandomInteger(0, LandingSpotClass.landing_spot_sizes.length)]; // And randomly choose size
+    if (random_size === "small") {
+      this.size = 4;
+      this.bonus = 8;
+    }
+    else if (random_size === "medium") {
+      this.size = 10;
+      this.bonus = 4;
+    }
+    else { // Large
+      this.size = 20;
+      this.bonus = 2;
+    }
+  }
+
+  get_within_landing_spot(step) {
+    if ((step >= this.starting) && (step < (this.starting + this.size))) {
+      return true;
+    }
+    return false;
+  }
+}
+
+/*
+ * Stores and generates the landscape, landing spots and star field
+ */
+class LandscapeClass {
+  static step_size = 3; // Landscape is broken down into steps. Define number of pixels on the x axis per step.
+  static world_steps = Math.trunc(WIDTH / LandscapeClass.step_size); // How many steps can we fit horizontally on the screen
+  static small_height_change = 3; // Controls how bumpy the landscape is
+  static large_height_change = 10; // Controls how steep the landscape is
+  static features = ["mountain","valley","field"]; // What features to generate
+  static n_stars = 30; // How many stars to put in the background
+  static n_spots = 4; // Max number of landing spots to generate
+
+  constructor() {
+    this.world_height = []; // Holds the height of the landscape at each step
+    this.star_locations = []; // Holds the x and y location of the stars
+    this.landing_spots = []; // Holds the landing spots
+  }
+
+  /*
+   * Calculate if a given step is within any of the landing spots
+   */
+  get_within_landing_spot(step) {
+    for (let spot of this.landing_spots) {
+      if (spot.get_within_landing_spot(step)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  get_landing_spot_bonus(step) {
+    for (let spot of this.landing_spots) {
+      if (spot.get_within_landing_spot(step)) {
+        return spot.bonus;
+      }
+    }
+    return 0;
+  }
+
+  /*
+   * Generates a new landscape
+   */
+  reset() {
+    // First: Choose which steps of the landscape will be landing spots
+    this.landing_spots = []; // Delete any previous LandingSpotClass objects
+    let next_spot_start = 0,
+        new_landing_spot,
+        feature_steps = 0, // Keep track of how many steps we are into a feature
+        current_feature, max_up, max_down, current_height, next_height;
+
+    // Move from left to right adding new landing spots until either
+    // n_spots spots have been placed or we run out of space in the world
+    while ((this.landing_spots.length < LandscapeClass.n_spots) && (next_spot_start < LandscapeClass.world_steps)) {
+      next_spot_start += getRandomInteger(10, 51); // Randomly choose location to start landing spot
+      new_landing_spot = new LandingSpotClass(next_spot_start); // Make a new landing object at this spot
+      this.landing_spots.push(new_landing_spot); // And store it in our list
+      next_spot_start += new_landing_spot.size; // Then take into account its size before choosing the next
+    }
+
+    // Second: Randomise the world map
+    this.world_height = []; // Clear any previous world height data
+    this.world_height.push(getRandomInteger(300, 501)); // Start the landscape between 300 and 500 pixels down
+    for (let step = 1; step < LandscapeClass.world_steps; step++) {
+      // If feature_step is zero, we need to choose a new feature and how long it goes on for
+      if (feature_steps === 0) {
+        feature_steps = getRandomInteger(25, 76);
+        current_feature = LandscapeClass.features[getRandomInteger(0, LandscapeClass.features.length)];
+      }
+      // Generate the world by setting the range of random numbers, must be flat if in a landing spot
+      if (this.get_within_landing_spot(step)) {
+        max_up = 0; // Flat
+        max_down = 0; // Flat
+      }
+      else if (current_feature === "mountain") {
+        max_up = LandscapeClass.small_height_change;
+        max_down = -LandscapeClass.large_height_change;
+      }
+      else if (current_feature === "valley") {
+        max_up = LandscapeClass.large_height_change;
+        max_down = -LandscapeClass.small_height_change;
+      }
+      else if (current_feature === "field") {
+        max_up = LandscapeClass.small_height_change;
+        max_down = -LandscapeClass.small_height_change;
+      }
+      // Generate the next piece of the landscape
+      current_height = this.world_height[step-1];
+      next_height = current_height + getRandomInteger(max_down, max_up + 1);
+      this.world_height.push(next_height);
+      feature_steps -= 1;
+      // Stop mountains getting too high, or valleys too low
+      if (next_height > 570) {
+        current_feature = "mountain"; // Too low! Force a mountain
+      }
+      else if (next_height < 200) {
+        current_feature = "valley"; // Too high! Force a valley
+      }
+    }
+
+    // Third: Randomise the star field
+    this.star_locations = []
+    for (let star = 0; star < LandscapeClass.n_stars; star++) {
+      let star_step = getRandomInteger(0, LandscapeClass.world_steps),
+          star_x = star_step * LandscapeClass.step_size,
+          star_y = getRandomInteger(0, this.world_height[star_step] + 1); // Keep the stars above the landscape
+      this.star_locations.push([star_x, star_y]);
+    }
+  }
+}
+
+/*
+ * Holds the state of the player's ship and handles movement
+ */
+class ShipClass {
+  static max_fuel = 1000; // How much fuel the player starts with
+  static booster_power = 0.05; // Power of the ship's thrusters
+  static rotate_speed = 10; // How fast the ship rotates in degrees per frame
+  static gravity = [0, 0.01]; // Strength of gravity in the x and y directions
+
+  /*
+   * Create the variables which will describe the players ship
+   */
+  constructor() {
+    this.angle = 0; // The angle the ship is facing 0 - 360 degrees
+    this.altitude = 0; // The number of pixels the ship is above the ground
+    this.booster = false; // true if the player is firing their booster
+    this.fuel = 0; // Amount of fuel remaining
+    this.position = [0, 0]; // The x and y coordinates of the players ship
+    this.velocity = [0, 0]; // The x and y velocity of the players ship
+    this.acceleration = [0, 0]; // The x and y acceleration of the players ship
+  }
+
+  /*
+   * Set the ships position, velocity and angle to their new-game values
+   */
+  reset() {
+    this.position = [750, 100]; // Always start at the same spot
+    this.velocity = [-Math.random(), Math.random()] // But with some initial speed
+    this.acceleration = [0, 0]; // No initial acceleration (except gravity of course)
+    this.angle = getRandomInteger(0, 361); // And pointing in a random direction
+    this.fuel = ShipClass.max_fuel; // Fill up fuel tanks
+  }
+
+  /*
+   * Rotate the players ship and keep the angle within the range 0 - 360 degrees
+   */
+  rotate(direction) {
+    if (direction === "left") {
+      this.angle -= ShipClass.rotate_speed;
+    }
+    else if (direction === "right") {
+      this.angle += ShipClass.rotate_speed;
+    }
+    if (this.angle > 360) { // Remember than adding or subtracting 360 degrees does not change the angle
+      this.angle -= 360;
+    }
+    else if (this.angle < 0) {
+      this.angle += 360;
+    }
+  }
+
+  /*
+   * When booster is firing we accelerate in the opposite direction, 180 degrees, from the way the ship is facing
+   */
+  booster_on() {
+    this.booster = true;
+    this.acceleration[0] = ShipClass.booster_power * Math.sin((this.angle + 180) * Math.PI / 180);
+    this.acceleration[1] = ShipClass.booster_power * Math.cos((this.angle + 180) * Math.PI / 180);
+    this.fuel -= 2;
+  }
+
+  /*
+   * When the booster is not firing we do not accelerate
+   */
+  booster_off() {
+    this.booster = false;
+    this.acceleration[0] = 0;
+    this.acceleration[1] = 0;
+  }
+
+  /*
+   * Update ship physics in X and Y, apply acceleration (and gravity) to the velocity and velocity to the position
+   */
+  update_physics() {
+    for (let axis = 0; axis < 2; axis++) {
+      this.velocity[axis] += ShipClass.gravity[axis];
+      this.velocity[axis] += this.acceleration[axis];
+      this.position[axis] += this.velocity[axis];
+    }
+    // Update player altitude. Note that (LanscapeClass.step_size * 3) is the length of the ship's legs
+    let ship_step = Math.trunc(this.position[0] / LandscapeClass.step_size);
+    if (ship_step < LandscapeClass.world_steps) {
+      this.altitude = game.landscape.world_height[ship_step] - this.position[1] - (LandscapeClass.step_size * 3);
+    }
+  }
+
+  /*
+   * Check if the player has hit the ground or gone off the sides
+   */
+  get_out_of_bounds() {
+    if ((this.altitude <= 0) || (this.position[0] <= 0) || (this.position[0] >= WIDTH)) {
+      return true;
+    }
+    return false;
+  }
+}
+
+/*
+ * Holds main game data, including the ship and landscape objects. Checks for game-over
+ */
+class GameClass {
+  constructor() {
+    this.time = 0; // Time spent playing in seconds
+    this.score = 0; // Player's score
+    this.game_speed = 30; // How fast the game should run in frames per second
+    this.time_elapsed = 0; // Time since the last frame was changed
+    this.blink = true; // true if blinking text is to be shown
+    this.n_frames = 0; // Number of frames processed
+    this.game_on = false; // true if the game is being played
+    this.game_message = "PI   LANDER\nPRESS SPACE TO START"; // Start of game message
+    this.ship = new ShipClass(); // Make a object of the ShipClass type
+    this.landscape = new LandscapeClass();
+    this.reset(); // Start the game with a fresh landscape and ship
+  }
+
+  reset() {
+    this.time = 0;
+    this.ship.reset();
+    this.landscape.reset();
+  }
+
+  /*
+   * Check if the game is over and update the game state if so
+   */
+  check_game_over() {
+    if (!this.ship.get_out_of_bounds()) {
+      return; // Game is not over
+    }
+    this.game_on = false; // Game has finished. But did we win or loose?
+    // Check if the player looses. This is if the ship's angle is > 20 degrees
+    // the ship is not over a landing site, is moving too fast or is off the side of the screen
+    let ship_step = Math.trunc(this.ship.position[0] / LandscapeClass.step_size);
+    if ((this.ship.position[0] <= 0) ||
+        (this.ship.position[0] >= WIDTH) ||
+        (!this.landscape.get_within_landing_spot(ship_step)) ||
+        (Math.abs(this.ship.velocity[0]) > 0.5) ||
+        (Math.abs(this.ship.velocity[1]) > 0.5) ||
+        ((this.ship.angle > 20) && (this.ship.angle < 340))) {
+      this.game_message = "YOU JUST DESTROYED A 100 MEGABUCK LANDER\n\nLOOSE 250 POINTS\n\nPRESS SPACE TO RESTART";
+      this.score -= 250;
+    }
+    else { // If the player has won! Update their score based on the amount of remaining fuel and the landing bonus
+      let points = this.ship.fuel / 10;
+      points *= this.landscape.get_landing_spot_bonus(ship_step);
+      this.score += points;
+      this.game_message = "CONGRATULATIONS\nTHAT WAS A GREAT LANDING!\n\n" + Math.round(points) + " POINTS\n\nPRESS SPACE TO RESTART";
+    }
+  }
+}
+
+var game;
+
+function reset() {
+  // Create the game object
+  game = new GameClass();
+}
+
+/*
+ * Draw the game window on the screen in the following order:
+ * start message, mountain range, bonus points, stars, statistics, player's ship
+ */
+function draw() {
+  screen.fill("black");
+  const size = LandscapeClass.step_size;
+
+  if (!game.game_on) {
+    screen.draw.text(game.game_message, {center: [Math.floor(WIDTH / 2), Math.floor(HEIGHT / 5)], align: "center"});
+  }
+
+  // Get the x and y coordinates of each step of the landscape and draw it as a straight line
+  for (let step = 0; step < (LandscapeClass.world_steps - 1); step++) {
+    let x_start = size * step,
+        x_end   = size * (step + 1),
+        y_start = game.landscape.world_height[step],
+        y_end   = game.landscape.world_height[step + 1];
+    screen.draw.line([x_start, y_start], [x_end, y_end], "white");
+    // Every second we flash the landing spots with a thicker line by drawing a narrow rectangle
+    if ((game.blink || (!game.game_on)) && game.landscape.get_within_landing_spot(step)) {
+      screen.draw.filled_rect(new Rect(x_start - size, y_start - 1, size, 3), "white");
+    }
+  }
+
+  // Draw the bonus point notifier
+  if (game.blink || (!game.game_on)) {
+    for (let spot of game.landscape.landing_spots) {
+      let x_text = spot.starting * size,
+          y_text = game.landscape.world_height[spot.starting] + 10; // The extra 10 pixels puts the text below the landscape
+      screen.draw.text(spot.bonus + "x", {pos: [x_text, y_text], color: "white"});
+    }
+  }
+
+  // Draw the stars
+  for (let star of game.landscape.star_locations) {
+    screen.draw.filled_rect(new Rect(star, [1, 1]), "white");
+  }
+
+  // Draw the stats
+  screen.draw.text("SCORE: " + Math.round(game.score), {pos: [10, 10], color: "white"});
+  screen.draw.text("TIME: " + Math.round(game.time), {pos: [10, 25], color: "white"});
+  screen.draw.text("FUEL: " + game.ship.fuel, {pos: [10, 40], color: "white"});
+  screen.draw.text("ALTITUDE: " + Math.round(game.ship.altitude), {pos: [WIDTH - 230, 10], color: "white"});
+  screen.draw.text("HORIZONTAL SPEED: " + game.ship.velocity[0].toFixed(2), {pos: [WIDTH - 230, 25], color: "white"});
+  screen.draw.text("VERTICAL SPEED: " + (-game.ship.velocity[1]).toFixed(2), {pos: [WIDTH - 230, 40], color: "white"});
+
+  screen.draw.circle(game.ship.position, size * 2, "yellow"); // Draw the player
+  // Use sin and cosine functions to draw the ship legs and booster at the correct angle
+  // Requires the values in radians (0 to 2*pi) rather than in degrees (0 to 360)
+  let sin_angle = Math.sin((game.ship.angle - 45) * Math.PI / 180), // Legs are drawn 45 degrees either side of the ship's angle
+      cos_angle = Math.cos((game.ship.angle - 45) * Math.PI / 180);
+  screen.draw.line(game.ship.position, [game.ship.position[0] + (sin_angle * size * 3), game.ship.position[1] + (cos_angle * size * 3)], "yellow");
+  sin_angle = Math.sin((game.ship.angle + 45) * Math.PI / 180);
+  cos_angle = Math.cos((game.ship.angle + 45) * Math.PI / 180);
+  screen.draw.line(game.ship.position, [game.ship.position[0] + (sin_angle * size * 3), game.ship.position[1] + (cos_angle * size * 3)], "yellow");
+  if (game.ship.booster) {
+    sin_angle = Math.sin(game.ship.angle * Math.PI / 180); // Booster is drawn at the same angle as the ship, just under it
+    cos_angle = Math.cos(game.ship.angle * Math.PI / 180);
+    screen.draw.filled_circle([game.ship.position[0] + (sin_angle * size * 3), game.ship.position[1] + (cos_angle * size * 3)], size, "orange");
+  }
+}
+
+/*
+ * Updates the game physics 30 times every second
+ */
+function update(detlatime) {
+  game.time_elapsed += detlatime;
+  if (game.time_elapsed < (1 / game.game_speed)) {
+    return; // A 30th of a second has not passed yet
+  }
+  game.time_elapsed -= 1 / game.game_speed;
+
+  // New frame - do all the simulations
+  game.n_frames += 1;
+  if ((game.n_frames % game.game_speed) === 0) { // If n_frames is an exact multiple of the game FPS: so once per second
+    game.blink = !game.blink; // Invert blink so True becomes False or False becomes True
+  }
+
+  // Start the game if the player presses space when the game is not on
+  if (keyboard[keys.SPACE] && (!game.game_on)) {
+    game.game_on = true;
+    game.reset();
+  }
+  else if (!game.game_on) {
+    return;
+  }
+
+  // If the game is on, update the movement and the physics
+  if (keyboard[keys.LEFT]) { // Change space ship rotation
+    game.ship.rotate("left");
+  }
+  else if (keyboard[keys.RIGHT]) {
+    game.ship.rotate("right");
+  }
+
+  if (keyboard[keys.UP] && (game.ship.fuel > 0)) { // Fire boosters if the player has enough fuel
+    game.ship.booster_on();
+  }
+  else {
+    game.ship.booster_off();
+  }
+
+  game.time += detlatime;
+  game.ship.update_physics();
+  game.check_game_over();
+}
+
+window.addEventListener('load', (event) => {
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
