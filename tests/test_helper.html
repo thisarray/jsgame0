@@ -20,6 +20,37 @@ body {
 <h1>Test helper</h1>
 
 <script>
+function test_modulo() {
+  test.assertEqual(modulo(5, 2), 1);
+  test.assertEqual(modulo(-4, 2), 0);
+  test.assertEqual(modulo(4, 2), 0);
+  test.assertEqual(modulo(9, 3), 0);
+  test.assertEqual(modulo(-12, 5), 3);
+  test.assertEqual(modulo(12, 5), 2);
+
+  test.assertEqual(modulo(-8, 4), 0);
+  test.assertEqual(modulo(-7, 4), 1);
+  test.assertEqual(modulo(-6, 4), 2);
+  test.assertEqual(modulo(-5, 4), 3);
+  test.assertEqual(modulo(-4, 4), 0);
+  test.assertEqual(modulo(-3, 4), 1);
+  test.assertEqual(modulo(-2, 4), 2);
+  test.assertEqual(modulo(-1, 4), 3);
+  test.assertEqual(modulo(0, 4), 0);
+  test.assertEqual(modulo(1, 4), 1);
+  test.assertEqual(modulo(2, 4), 2);
+  test.assertEqual(modulo(3, 4), 3);
+  test.assertEqual(modulo(4, 4), 0);
+  test.assertEqual(modulo(5, 4), 1);
+  test.assertEqual(modulo(6, 4), 2);
+  test.assertEqual(modulo(7, 4), 3);
+  test.assertEqual(modulo(8, 4), 0);
+  test.assertEqual(modulo(9, 4), 1);
+  test.assertEqual(modulo(10, 4), 2);
+  test.assertEqual(modulo(11, 4), 3);
+  test.assertEqual(modulo(12, 4), 0);
+}
+
 function test_getRandom() {
   for (let [min, max] of [
     [0, 1],
