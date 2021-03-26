@@ -2,7 +2,7 @@
 
 jsgame0.js is a collection of JavaScript objects following the Pygame Zero specifications.
 It makes porting Pygame Zero scripts from Python to JavaScript straightforward.
-There are still language quirks like the [remainder operator(%)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder) that may trip you up.
+There are still language quirks like the [remainder operator (%)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder) that may trip you up.
 The game runs in the browser using the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API).
 
 ## Differences from Pygame Zero
