@@ -71,6 +71,8 @@ function radiansToDegrees(radians) {
  * A JavaScript 2-Dimensional vector based on pygame.math.Vector2.
  */
 class Vecta {
+  static TAU = Math.PI * 2;
+
   /*
    * Return true if the Numbers first and second are equal to places.
    *
@@ -214,10 +216,8 @@ class Vecta {
    * Rotate this vector by the given angle in radians.
    */
   rotate_ip_rad(radians) {
-    radians = radians % (Math.PI * 2);
-    if (radians < 0) {
-      radians += Math.PI * 2;
-    }
+    // Duplicate the code in modulo() so this class does not depend on the function
+    radians = ((radians % Vecta.TAU) + Vecta.TAU) % Vecta.TAU;
     if (Vecta.isAlmostEqual(radians, 0)) {
       return;
     }

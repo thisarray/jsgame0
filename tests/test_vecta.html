@@ -186,11 +186,11 @@ function test_rotation() {
     expectedX = Math.cos(angle * Math.PI / 180);
     expectedY = Math.sin(angle * Math.PI / 180);
     d = v.rotate(angle);
-    test.assertEqual(d.x, expectedX);
-    test.assertEqual(d.y, expectedY);
+    test.assertTrue(Vecta.isAlmostEqual(d.x, expectedX));
+    test.assertTrue(Vecta.isAlmostEqual(d.y, expectedY));
     r = v.rotate_rad(angle * Math.PI / 180);
-    test.assertEqual(r.x, expectedX);
-    test.assertEqual(r.y, expectedY);
+    test.assertTrue(Vecta.isAlmostEqual(r.x, expectedX));
+    test.assertTrue(Vecta.isAlmostEqual(r.y, expectedY));
   }
 }
 
