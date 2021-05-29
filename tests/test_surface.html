@@ -159,7 +159,7 @@ function test_setAt() {
 
   let expected = [0, 1, 2, 3];
   for (let y = 0; y < s.height; y++) {
-    let color = new Array(y).fill(0);
+    let color = new Array(y + 4).fill(0);
     for (let x = 0; x < s.width; x++) {
       test.assertEqual(s.getAt(x, y), expected);
       s.setAt(x, y, color);
@@ -172,6 +172,30 @@ function test_setAt() {
   for (let i = 0; i < 128; i++) {
     test.assertEqual(imageData.data[i], 0);
   }
+}
+
+function test_setAt_short() {
+  let imageData = context.createImageData(8, 4),
+      s = new Surface(imageData);
+  s.setAt(1, 0, [1]);
+  s.setAt(2, 0, [1, 2]);
+  s.setAt(3, 0, [1, 2, 3]);
+  s.setAt(4, 0, [1, 2, 3, 4]);
+  s.setAt(0, 1, [1]);
+  s.setAt(0, 2, [1, 2]);
+  s.setAt(0, 3, [1, 2, 3]);
+
+  test.assertEqual(s.getAt(0, 0), [0, 0, 0, 0]);
+  test.assertEqual(s.getAt(1, 0), [1, 0, 0, 255]);
+  test.assertEqual(s.getAt(2, 0), [1, 2, 0, 255]);
+  test.assertEqual(s.getAt(3, 0), [1, 2, 3, 255]);
+  test.assertEqual(s.getAt(4, 0), [1, 2, 3, 4]);
+  test.assertEqual(s.getAt(5, 0), [0, 0, 0, 0]);
+  test.assertEqual(s.getAt(0, 1), [1, 0, 0, 255]);
+  test.assertEqual(s.getAt(0, 2), [1, 2, 0, 255]);
+  test.assertEqual(s.getAt(0, 3), [1, 2, 3, 255]);
+  test.assertEqual(s.getAt(0, 4), [0, 0, 0, 0]);
+  test.assertEqual(s.getAt(0, 5), [0, 0, 0, 0]);
 }
 
 function test_isColorEqual() {
@@ -316,7 +340,7 @@ function test_getSurface() {
   test.assertEqual(s.width, WIDTH);
   test.assertEqual(s.height, HEIGHT);
   for (let y = 0; y < s.height; y++) {
-    let color = new Array(y).fill(0);
+    let color = new Array(y + 4).fill(0);
     for (let x = 0; x < s.width; x++) {
       if (x < halfWidth) {
         test.assertEqual(s.getAt(x, y), [0, 255, 0, 255]);
