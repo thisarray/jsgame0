@@ -3276,8 +3276,11 @@ class Surface {
       if (i < color.length) {
         c = color[i];
       }
-      else {
+      else if (i < 3) {
         c = 0;
+      }
+      else {
+        c = 255;
       }
       // ImageData clamps the value if c is not in [0, 255]
       this.imageData.data[start+i] = c;
