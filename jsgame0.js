@@ -3165,22 +3165,42 @@ class Joystick {
  */
 class Surface {
   /*
+   * Pad a copy of the Array color to 4 elements.
+   */
+  static _padColorArray(color) {
+    let result = color.slice(0, 4);
+    while (result.length < 3) {
+      result.push(0);
+    }
+    while (result.length < 4) {
+      result.push(255);
+    }
+    return result;
+  }
+
+  /*
    * Return true if the numbers in the Arrays first and second are equal.
    */
   static isColorEqual(first, second) {
     if (Array.isArray(first) && Array.isArray(second)) {
-      const length = Math.min(first.length, second.length);
-      if (length <= 0) {
+      if (first.length <= 0) {
         return false;
       }
-      for (let i = 0; i < length; i++) {
-        if (typeof first[i] !== 'number') {
+      if (second.length <= 0) {
+        return false;
+      }
+
+      let a = Surface._padColorArray(first),
+          b = Surface._padColorArray(second);
+
+      for (let i = 0; i < 4; i++) {
+        if (typeof a[i] !== 'number') {
           return false;
         }
-        if (typeof second[i] !== 'number') {
+        if (typeof b[i] !== 'number') {
           return false;
         }
-        if (first[i] !== second[i]) {
+        if (a[i] !== b[i]) {
           return false;
         }
       }
@@ -3253,7 +3273,7 @@ class Surface {
       throw new TypeError('y must be a number.');
     }
     if (!Array.isArray(color)) {
-      throw new TypeError('color must be an Array of length 3 or 4.');
+      throw new TypeError('color must be an Array of 3 or 4 integers.');
     }
 
     if (x < 0) {
@@ -3270,17 +3290,12 @@ class Surface {
     }
 
     let start = this._coordinatesToIndex(x, y),
+        newColor = Surface._padColorArray(color),
         c;
     for (let i = 0; i < 4; i++) {
-      // Gracefully handle color being shorter than expected
-      if (i < color.length) {
-        c = color[i];
-      }
-      else if (i < 3) {
-        c = 0;
-      }
-      else {
-        c = 255;
+      c = newColor[i];
+      if (typeof c !== 'number') {
+        throw new TypeError('color must be an Array of 3 or 4 integers.');
       }
       // ImageData clamps the value if c is not in [0, 255]
       this.imageData.data[start+i] = c;
