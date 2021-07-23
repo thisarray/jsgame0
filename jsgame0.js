@@ -2181,10 +2181,10 @@ class Inbetweener {
         if (start.length != end.length) {
           continue;
         }
-        if (start.filter(e => (typeof e !== 'number')).length > 0) {
+        if (start.some(e => (typeof e !== 'number'))) {
           continue;
         }
-        if (end.filter(e => (typeof e !== 'number')).length > 0) {
+        if (end.some(e => (typeof e !== 'number'))) {
           continue;
         }
         this.attributes.set(a, {start: start, end: end});
