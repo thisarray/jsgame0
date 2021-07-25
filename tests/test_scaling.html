@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Scaling</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+  </style>
+</head>
+
+<body>
+<section id="imageLoader" class="hidden">
+  <img class="hidden" src="images/character.png" alt="character" data-name="character">
+</section>
+
+<main>
+<h1>Test Scaling</h1>
+
+<h2>Normal</h2>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+
+<h2>Half</h2>
+
+<canvas id="half">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+
+<h2>Double</h2>
+
+<canvas id="double">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+
+</main>
+
+<script>
+WIDTH = 256;
+HEIGHT = 256;
+
+/*
+ * Size of each tile in pixels.
+ */
+const TILE_SIZE = 64;
+
+function test_normal() {
+  screen.set_mode('#screen');
+  screen.clear();
+  screen.blit('character', new Map());
+}
+
+function test_half() {
+  let half = Math.floor(TILE_SIZE / 2);
+  screen.set_mode('#half');
+  screen.clear();
+  screen.blit('character', new Rect(half, half, half, half));
+}
+
+function test_double() {
+  let double = TILE_SIZE * 2;
+  screen.set_mode('#double');
+  screen.clear();
+  screen.blit('character', new Rect(double, 0, double, double));
+}
+
+window.addEventListener('load', (event) => {
+  images.LOAD('#imageLoader img');
+  test.main();
+});
+</script>
+</body>
+
+</html>
