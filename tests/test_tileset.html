@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Tileset</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+  </style>
+</head>
+
+<body>
+<section id="imageLoader" class="hidden">
+  <img class="hidden" src="images/tiles.png" alt="tiles" data-name="tiles">
+</section>
+
+<main>
+<h1>Test Tileset</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+</main>
+
+<script>
+WIDTH = 320;
+HEIGHT = 256;
+
+/*
+ * Size of each tile in pixels.
+ */
+const TILE_SIZE = 64;
+
+function test_tileset() {
+  screen.clear('transparent');
+  screen.blit('tiles', [0, 0]);
+  screen.blit('tiles', new Rect(0, 0, TILE_SIZE, TILE_SIZE), new Rect(256, 128, 64, 32));
+  screen.blit('tiles', new Rect(TILE_SIZE, 0, TILE_SIZE, TILE_SIZE), new Rect(192, 64, 32, 64));
+  screen.blit('tiles', new Rect(TILE_SIZE * 2, 0, TILE_SIZE, TILE_SIZE), new Rect(128, 96, 32, 32));
+  screen.blit('tiles', new Rect(TILE_SIZE * 3, 0, TILE_SIZE, TILE_SIZE), new Rect(64, 128, TILE_SIZE, TILE_SIZE));
+  screen.blit('tiles', new Rect(TILE_SIZE * 4, 0, TILE_SIZE, TILE_SIZE), new Rect(0, 64, TILE_SIZE, TILE_SIZE));
+  screen.blit('tiles', new Rect(0, 192, WIDTH, TILE_SIZE), new Map());
+}
+
+window.addEventListener('load', (event) => {
+  images.LOAD('#imageLoader img');
+  screen.set_mode('#screen', '#reset', '#pause');
+  test.main();
+});
+</script>
+</body>
+
+</html>
