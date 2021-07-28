@@ -2744,14 +2744,14 @@ const screen = (function () {
     /*
      * Draw object to the screen at the given position.
      */
-    blit(object, pos) {
+    blit(object, pos, target) {
       if (context == null) {
         return;
       }
 
-      let [x=0, y=0] = pos,
-          image;
+      let x, y, image;
       if (object instanceof Actor) {
+        [x=0, y=0] = pos;
         image = images[object.name];
         context.save();
         if (typeof object.opacity === 'number') {
@@ -2768,6 +2768,7 @@ const screen = (function () {
         context.restore();
       }
       else if (object instanceof Surface) {
+        [x=0, y=0] = pos;
         context.save();
         context.putImageData(object.imageData, x, y);
         context.restore();
@@ -2778,7 +2779,20 @@ const screen = (function () {
         }
         image = images[object];
         context.save();
-        context.drawImage(image, x, y);
+        if (pos instanceof Rect) {
+          // Support scaling and tilesets when Rect objects are passed as arguments
+          if (target instanceof Rect) {
+            context.drawImage(image, pos.x, pos.y, pos.width, pos.height,
+                              target.x, target.y, target.width, target.height);
+          }
+          else {
+            context.drawImage(image, pos.x, pos.y, pos.width, pos.height);
+          }
+        }
+        else {
+          [x=0, y=0] = pos;
+          context.drawImage(image, x, y);
+        }
         context.restore();
       }
       else {
