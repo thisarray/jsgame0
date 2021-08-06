@@ -98,6 +98,19 @@ const test = (function () {
       }
       return true;
     },
+    assertAlmostEqual(first, second, places = 7) {
+      if (typeof first !== 'number') {
+        console.assert(false, 'first must be a number!');
+        return false;
+      }
+      if (typeof second !== 'number') {
+        console.assert(false, 'second must be a number!');
+        return false;
+      }
+      let result = first.toFixed(places) === second.toFixed(places);
+      console.assert(result, `numbers do not compare equal to ${ places } places!`);
+      return result;
+    },
     assertTrue(expr, msg) {
       if (msg == null) {
         msg = 'expr is not true';

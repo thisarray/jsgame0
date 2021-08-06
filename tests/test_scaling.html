@@ -75,6 +75,141 @@ function test_double() {
   screen.blit('character', new Rect(double, 0, double, double));
 }
 
+function test_getBoundingBox() {
+  let a = new Actor('character'),
+      r = a.getBoundingBox(),
+      hypotenuse = a.width * Math.sqrt(2);
+  test.assertEqual(a.width, a.height);
+  test.assertEqual(r.x, 0);
+  test.assertEqual(r.y, 0);
+  test.assertEqual(r.width, a.width);
+  test.assertEqual(r.height, a.height);
+
+  for (let value of [-630, -270, 90, 450]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(Math.abs(r.x), 0);
+    test.assertAlmostEqual(Math.abs(r.y), 0);
+    test.assertAlmostEqual(r.width, a.height);
+    test.assertAlmostEqual(r.height, a.width);
+  }
+  for (let value of [-540, -180, 180, 540]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(Math.abs(r.x), 0);
+    test.assertAlmostEqual(Math.abs(r.y), 0);
+    test.assertAlmostEqual(r.width, a.width);
+    test.assertAlmostEqual(r.height, a.height);
+  }
+  for (let value of [-450, -90, 270, 630]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(Math.abs(r.x), 0);
+    test.assertAlmostEqual(Math.abs(r.y), 0);
+    test.assertAlmostEqual(r.width, a.height);
+    test.assertAlmostEqual(r.height, a.width);
+  }
+  for (let value of [-720, -360, 0, 360, 720]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertEqual(r.x, 0);
+    test.assertEqual(r.y, 0);
+    test.assertEqual(r.width, a.width);
+    test.assertEqual(r.height, a.height);
+  }
+  for (let value = 0; value <= 360; value++) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertTrue(Math.abs(r.x) <= (hypotenuse / 2));
+    test.assertTrue(Math.abs(r.y) <= (hypotenuse / 2));
+    test.assertTrue(r.width >= a.width);
+    test.assertTrue(r.height >= a.width);
+  }
+  for (let value of [-405, -315, -225, -135, -45, 45, 135, 225, 315, 405]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(r.x, (a.width - hypotenuse) / 2);
+    test.assertAlmostEqual(r.y, (a.height - hypotenuse) / 2);
+    test.assertAlmostEqual(r.width, hypotenuse);
+    test.assertAlmostEqual(r.height, hypotenuse);
+  }
+
+  a.anchor = 'topleft';
+  a.pos = [0, 0];
+  for (let value of [-630, -270, 90, 450]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(Math.abs(r.x), 0);
+    test.assertAlmostEqual(r.y, -a.width);
+    test.assertAlmostEqual(r.width, a.height);
+    test.assertAlmostEqual(r.height, a.width);
+  }
+  for (let value of [-540, -180, 180, 540]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(r.x, -a.width);
+    test.assertAlmostEqual(r.y, -a.height);
+    test.assertAlmostEqual(r.width, a.width);
+    test.assertAlmostEqual(r.height, a.height);
+  }
+  for (let value of [-450, -90, 270, 630]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(r.x, -a.height);
+    test.assertAlmostEqual(Math.abs(r.y), 0);
+    test.assertEqual(r.width, a.height);
+    test.assertEqual(r.height, a.width);
+  }
+  for (let value of [-720, -360, 0, 360, 720]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertEqual(r.x, 0);
+    test.assertEqual(r.y, 0);
+    test.assertEqual(r.width, a.width);
+    test.assertEqual(r.height, a.height);
+  }
+  for (let value = 0; value <= 360; value++) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertTrue(Math.abs(r.x) <= hypotenuse);
+    test.assertTrue(Math.abs(r.y) <= hypotenuse);
+    test.assertTrue(r.width >= a.width);
+    test.assertTrue(r.height >= a.width);
+  }
+  for (let value of [-675, -315, 45, 405]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(Math.abs(r.x), 0);
+    test.assertAlmostEqual(r.y, -hypotenuse / 2);
+    test.assertAlmostEqual(r.width, hypotenuse);
+    test.assertAlmostEqual(r.height, hypotenuse);
+  }
+  for (let value of [-585, -225, 135, 495]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(r.x, -hypotenuse / 2);
+    test.assertAlmostEqual(r.y, -hypotenuse);
+    test.assertAlmostEqual(r.width, hypotenuse);
+    test.assertAlmostEqual(r.height, hypotenuse);
+  }
+  for (let value of [-495, -135, 225, 585]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(r.x, -hypotenuse);
+    test.assertAlmostEqual(r.y, -hypotenuse / 2);
+    test.assertAlmostEqual(r.width, hypotenuse);
+    test.assertAlmostEqual(r.height, hypotenuse);
+  }
+  for (let value of [-405, -45, 315, 675]) {
+    a.angle = value;
+    r = a.getBoundingBox();
+    test.assertAlmostEqual(r.x, -hypotenuse / 2);
+    test.assertAlmostEqual(Math.abs(r.y), 0);
+    test.assertAlmostEqual(r.width, hypotenuse);
+    test.assertAlmostEqual(r.height, hypotenuse);
+  }
+}
+
 window.addEventListener('load', (event) => {
   images.LOAD('#imageLoader img');
   test.main();
