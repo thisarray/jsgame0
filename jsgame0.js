@@ -1992,6 +1992,47 @@ class Actor {
     let vector = this._vector_to(target);
     return vector[0];
   }
+
+  /*
+   * Return a Rect object that is the minimum bounding box for this instance.
+   *
+   * The Rect methods of the Actor class do not account for rotation.
+   * So if you need to do collision detection with a rotated Actor instance,
+   * this method returns the minimum bounding box as a Rect object.
+   */
+  getBoundingBox() {
+    let [dx=0, dy=0] = this._calculateAnchor(),
+        angle = this.angle % 360,
+        theta = -angle * Math.PI / 180,
+        sinTheta = Math.sin(theta),
+        cosTheta = Math.cos(theta),
+        // width and height of the minimum bounding box
+        width = Math.abs(this.width * cosTheta) + Math.abs(this.height * sinTheta),
+        height = Math.abs(this.width * sinTheta) + Math.abs(this.height * cosTheta),
+        // Offset of the anchor from the center
+        cax = dx - (this.width / 2),
+        cay = dy - (this.height / 2),
+        // Subtract rotated offset of the anchor from the center + half from anchor
+        x = this.posx - ((cax * cosTheta) - (cay * sinTheta) + (width / 2)),
+        y = this.posy - ((cax * sinTheta) + (cay * cosTheta) + (height / 2));
+
+    // Use exact values if the angle is a right angle
+    if (angle === 0) {
+      return new Rect(this.x, this.y, this.width, this.height);
+    }
+    else if (angle === 90) {
+      return new Rect(this.posx - dy, this.posy - (this.width - dx), this.height, this.width);
+    }
+    else if (angle === 180) {
+      return new Rect(this.posx - (this.width - dx), this.posy - (this.height - dy), this.width, this.height);
+    }
+    else if (angle === 270) {
+      return new Rect(this.posx - (this.height - dy), this.posy - dx, this.height, this.width);
+    }
+    else {
+      return new Rect(x, y, width, height);
+    }
+  }
 }
 
 /*
