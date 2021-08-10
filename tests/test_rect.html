@@ -89,6 +89,33 @@ function test_rect() {
   catch (error) {
     test.assertTrue(error instanceof Error);
   }
+  for (let value of [
+    ['foobar', 2, 3, 4],
+    [1, 'foobar', 3, 4],
+    [1, 2, 'foobar', 4],
+    [1, 2, 3, 'foobar']]) {
+    try {
+      r = new Rect(...value);
+      console.assert(false, 'Error not raised.');
+    }
+    catch (error) {
+      test.assertTrue(error instanceof TypeError);
+    }
+    try {
+      r = new Rect(value);
+      console.assert(false, 'Error not raised.');
+    }
+    catch (error) {
+      test.assertTrue(error instanceof TypeError);
+    }
+    try {
+      r = new Rect({x: value[0], y: value[1], width: value[2], height: value[3]});
+      console.assert(false, 'Error not raised.');
+    }
+    catch (error) {
+      test.assertTrue(error instanceof TypeError);
+    }
+  }
 }
 
 function test_toString() {
