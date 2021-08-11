@@ -1169,6 +1169,19 @@ class Rect {
       [x=0, y=0, width=0, height=0] = arguments;
     }
 
+    if (typeof x !== 'number') {
+      throw new TypeError('x must be a number.');
+    }
+    if (typeof y !== 'number') {
+      throw new TypeError('y must be a number.');
+    }
+    if (typeof width !== 'number') {
+      throw new TypeError('width must be a number.');
+    }
+    if (typeof height !== 'number') {
+      throw new TypeError('height must be a number.');
+    }
+
     this.x = x;
     this.y = y;
     this.width = width;
@@ -1582,11 +1595,11 @@ class Actor {
 
     // If it is a Number, x offset in pixels from the topleft corner to the anchor
     // If it is a String, relative offset that is lazily evaluated
-    this.anchor_dx = 'center';
+    this.anchorDx = 'center';
 
     // If it is a Number, y offset in pixels from the topleft corner to the anchor
     // If it is a String, relative offset that is lazily evaluated
-    this.anchor_dy = 'center';
+    this.anchorDy = 'center';
 
     // Initialize the anchor at center with the topleft corner at (0, 0)
     this.posx = Math.floor(this.width / 2);
@@ -1607,6 +1620,46 @@ class Actor {
   }
 
   /*
+   * Return an Array containing the x and y pixel offsets from the topleft corner to the anchor.
+   *
+   * This allows us to lazily evaluate the offsets.
+   */
+  _calculateAnchor() {
+    let result = [];
+    if (typeof this.anchorDx === 'number') {
+      result.push(this.anchorDx);
+    }
+    else if (typeof this.anchorDx === 'string') {
+      if (this.anchorDx === 'left') {
+        result.push(0);
+      }
+      else if (this.anchorDx === 'center') {
+        result.push(Math.floor(this.width / 2));
+      }
+      else if (this.anchorDx === 'right') {
+        result.push(this.width);
+      }
+    }
+
+    if (typeof this.anchorDy === 'number') {
+      result.push(this.anchorDy);
+    }
+    else if (typeof this.anchorDy === 'string') {
+      if (this.anchorDy === 'top') {
+        result.push(0);
+      }
+      else if (this.anchorDy === 'center') {
+        result.push(Math.floor(this.height / 2));
+      }
+      else if (this.anchorDy === 'bottom') {
+        result.push(this.height);
+      }
+    }
+
+    return result;
+  }
+
+  /*
    * anchor is overloaded to accept String or Number in Array or not.
    *
    * I personally think it is not Pythonic and violates
@@ -1614,53 +1667,54 @@ class Actor {
    * but I did not write the Pygame Zero spec.
    */
   set anchor(anchor) {
+    let [originalDx=0, originalDy=0] = this._calculateAnchor();
+
     if (typeof anchor === 'string') {
       let cleaned = anchor.trim().toLowerCase();
       if (cleaned === 'topleft') {
-        this.anchor_dx = 'left';
-        this.anchor_dy = 'top';
+        this.anchorDx = 'left';
+        this.anchorDy = 'top';
       }
       else if (cleaned === 'midtop') {
-        this.anchor_dx = 'center';
-        this.anchor_dy = 'top';
+        this.anchorDx = 'center';
+        this.anchorDy = 'top';
       }
       else if (cleaned === 'topright') {
-        this.anchor_dx = 'right';
-        this.anchor_dy = 'top';
+        this.anchorDx = 'right';
+        this.anchorDy = 'top';
       }
       else if (cleaned === 'midleft') {
-        this.anchor_dx = 'left';
-        this.anchor_dy = 'center';
+        this.anchorDx = 'left';
+        this.anchorDy = 'center';
       }
       else if (cleaned === 'center') {
-        this.anchor_dx = 'center';
-        this.anchor_dy = 'center';
+        this.anchorDx = 'center';
+        this.anchorDy = 'center';
       }
       else if (cleaned === 'midright') {
-        this.anchor_dx = 'right';
-        this.anchor_dy = 'center';
+        this.anchorDx = 'right';
+        this.anchorDy = 'center';
       }
       else if (cleaned === 'bottomleft') {
-        this.anchor_dx = 'left';
-        this.anchor_dy = 'bottom';
+        this.anchorDx = 'left';
+        this.anchorDy = 'bottom';
       }
       else if (cleaned === 'midbottom') {
-        this.anchor_dx = 'center';
-        this.anchor_dy = 'bottom';
+        this.anchorDx = 'center';
+        this.anchorDy = 'bottom';
       }
       else if (cleaned === 'bottomright') {
-        this.anchor_dx = 'right';
-        this.anchor_dy = 'bottom';
+        this.anchorDx = 'right';
+        this.anchorDy = 'bottom';
       }
       else {
         throw new RangeError(`Unknown anchor "${ anchor }". Must be "topleft", "midtop", "topright", "midleft", "center", "midright", "bottomleft", "midbottom", or "bottomright".`);
       }
-
-      return;
     }
-
-    if (typeof anchor === 'object') {
-      let x, y, cleaned;
+    else if (typeof anchor === 'object') {
+      let originalAnchorDx = this.anchorDx,
+          originalAnchorDy = this.anchorDy,
+          x, y, cleaned;
       if (Array.isArray(anchor)) {
         [x=0, y=0] = anchor;
       }
@@ -1669,18 +1723,18 @@ class Actor {
       }
 
       if (typeof x === 'number') {
-        this.anchor_dx = x;
+        this.anchorDx = x;
       }
       else if (typeof x === 'string') {
         cleaned = x.trim().toLowerCase();
         if (cleaned === 'left') {
-          this.anchor_dx = 'left';
+          this.anchorDx = 'left';
         }
         else if ((cleaned === 'center') || (cleaned === 'middle')) {
-          this.anchor_dx = 'center';
+          this.anchorDx = 'center';
         }
         else if (cleaned === 'right') {
-          this.anchor_dx = 'right';
+          this.anchorDx = 'right';
         }
         else {
           throw new RangeError(`Unknown anchor "${ x }". Must be "left", "center", "middle", or "right".`);
@@ -1691,31 +1745,43 @@ class Actor {
       }
 
       if (typeof y === 'number') {
-        this.anchor_dy = y;
+        this.anchorDy = y;
       }
       else if (typeof y === 'string') {
         cleaned = y.trim().toLowerCase();
         if (cleaned === 'top') {
-          this.anchor_dy = 'top';
+          this.anchorDy = 'top';
         }
         else if ((cleaned === 'center') || (cleaned === 'middle')) {
-          this.anchor_dy = 'center';
+          this.anchorDy = 'center';
         }
         else if (cleaned === 'bottom') {
-          this.anchor_dy = 'bottom';
+          this.anchorDy = 'bottom';
         }
         else {
+          // Reset the anchor in case the x value is valid and was set
+          this.anchorDx = originalAnchorDx;
+          this.anchorDy = originalAnchorDy;
           throw new RangeError(`Unknown anchor "${ y }". Must be "top", "center", "middle", or "bottom".`);
         }
       }
       else {
+        // Reset the anchor in case the x value is valid and was set
+        this.anchorDx = originalAnchorDx;
+        this.anchorDy = originalAnchorDy;
         throw new TypeError('Unrecognized anchor type. Must be a Number or a String.');
       }
-
-      return;
+    }
+    else {
+      throw new TypeError('Unrecognized anchor type.');
     }
 
-    throw new TypeError('Unrecognized anchor type.');
+    let [dx=0, dy=0] = this._calculateAnchor();
+    if ((dx !== originalDx) || (dy !== originalDy)) {
+      // If the anchor offsets changed, then update the anchor
+      this.posx = this.posx - originalDx + dx;
+      this.posy = this.posy - originalDy + dy;
+    }
   }
 
   get pos() {
@@ -1725,46 +1791,6 @@ class Actor {
     let [x=0, y=0] = pos;
     this.posx = x;
     this.posy = y;
-  }
-
-  /*
-   * Return an Array containing the x and y pixel offsets from the topleft corner to the anchor.
-   *
-   * This allows us to lazily evaluate the offsets.
-   */
-  _calculateAnchor() {
-    let result = [];
-    if (typeof this.anchor_dx === 'number') {
-      result.push(this.anchor_dx);
-    }
-    else if (typeof this.anchor_dx === 'string') {
-      if (this.anchor_dx === 'left') {
-        result.push(0);
-      }
-      else if (this.anchor_dx === 'center') {
-        result.push(Math.floor(this.width / 2));
-      }
-      else if (this.anchor_dx === 'right') {
-        result.push(this.width);
-      }
-    }
-
-    if (typeof this.anchor_dy === 'number') {
-      result.push(this.anchor_dy);
-    }
-    else if (typeof this.anchor_dy === 'string') {
-      if (this.anchor_dy === 'top') {
-        result.push(0);
-      }
-      else if (this.anchor_dy === 'center') {
-        result.push(Math.floor(this.height / 2));
-      }
-      else if (this.anchor_dy === 'bottom') {
-        result.push(this.height);
-      }
-    }
-
-    return result;
   }
 
   /*
@@ -3048,10 +3074,10 @@ class Joystick {
     if (Joystick._initialized) {
       return;
     }
-    window.addEventListener('gamepadconnected', Joystick._connect);
-    window.addEventListener('gamepaddisconnected', Joystick._disconnect);
     Joystick._controllers = [];
     Joystick._initialized = true;
+    window.addEventListener('gamepadconnected', Joystick._connect);
+    window.addEventListener('gamepaddisconnected', Joystick._disconnect);
   }
 
   /*
