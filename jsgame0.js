@@ -2952,8 +2952,12 @@ const screen = (function () {
       }
 
       // Add event listeners
+
+      // Cannot make KeyboardEvent listeners conditional because user may
+      // use keyboard builtin without defining on_key_* handlers
       window.addEventListener('keydown', keydown, true);
       window.addEventListener('keyup', keyup, true);
+
       if (canvas != null) {
         if (typeof window.on_mouse_down === 'function') {
           canvas.addEventListener('mousedown', mousedown);

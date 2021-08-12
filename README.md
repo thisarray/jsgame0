@@ -10,6 +10,9 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
 - Actor class
   - x and y always refer to the topleft corner and ARE NOT aliases for pos.
   - posx and posy ARE the aliases for pos you are looking for.
+  - The Rect methods do not account for rotation.
+    getBoundingBox() returns the [minimum bounding box](https://en.wikipedia.org/wiki/Minimum_bounding_box)
+    as a Rect object for collision detection with a rotated Actor instance.
 - images, sounds, and music map to the underlying [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement).
   I did not write wrappers for them because for simple operations HTMLMediaElement works the way you expect.
   For more complex operations, wrappers get in the way.
