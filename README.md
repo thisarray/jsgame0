@@ -7,15 +7,26 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
 
 ## Differences from Pygame Zero
 
+- There is some boilerplate code to get the browser to load the JavaScript, images, sounds, and music.
+  So instead of the "zero" standing for no boilerplate, it stands for no installation.
+
 - Actor class
   - x and y always refer to the topleft corner and ARE NOT aliases for pos.
   - posx and posy ARE the aliases for pos you are looking for.
   - The Rect methods do not account for rotation.
     getBoundingBox() returns the [minimum bounding box](https://en.wikipedia.org/wiki/Minimum_bounding_box)
     as a Rect object for collision detection with a rotated Actor instance.
+
+- global variables **SHOULD BE** initialized in a reset() function.
+  This is just good organization and lets you find them easily in one section.
+  In addition, it allows you to reset the game without reloading the page.
+  In particular, Actor instances **MUST BE** created in the reset() function because the browser may not have loaded their images yet.
+  reset() is called after the browser has retrieved all the resources.
+
 - images, sounds, and music map to the underlying [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement).
   I did not write wrappers for them because for simple operations HTMLMediaElement works the way you expect.
   For more complex operations, wrappers get in the way.
+
 - There is no storage because the
   [localStorage object](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API) serves the same purpose.
 
