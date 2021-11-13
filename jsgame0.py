@@ -229,11 +229,13 @@ def print_javascript(lines):
 
     # Figure out the indent level for each line
     indents = [len(line) - len(line.lstrip()) for line in lines]
-    while True:
-        if any([(i % 2) == 1 for i in indents]):
-            break
-        for i in range(len(indents)):
-            indents[i] = indents[i] // 2
+    if any(i > 0 for i in indents):
+        # If a line is indented, then half the indent until the indent is odd
+        while True:
+            if any((i % 2) == 1 for i in indents):
+                break
+            for i in range(len(indents)):
+                indents[i] = indents[i] // 2
 
     # Propagate the indent level backwards to deal with spacing empty lines
     i = len(lines) - 2
