@@ -126,7 +126,7 @@ function update(dt) {
   // Apply constant acceleration formulae
   let uy = ball.vy;
   ball.vy += GRAVITY * dt;
-  ball.y += (uy + ball.vy) * 0.5 * dt
+  ball.y += (uy + ball.vy) * 0.5 * dt;
 
   // detect and handle bounce
   if (ball.y > (HEIGHT - ball.radius)) { // we've bounced!

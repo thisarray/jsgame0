@@ -492,7 +492,7 @@ class LandscapeClass {
     }
 
     // Third: Randomise the star field
-    this.star_locations = []
+    this.star_locations = [];
     for (let star = 0; star < LandscapeClass.n_stars; star++) {
       let star_step = getRandomInteger(0, LandscapeClass.world_steps),
           star_x = star_step * LandscapeClass.step_size,
