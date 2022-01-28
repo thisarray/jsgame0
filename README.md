@@ -54,7 +54,7 @@ Based on my reading of the Pygame Zero license, jsgame0.js is free to be license
 
 I chose a MIT license for more freedom.
 
-You can find examples and tests not encumbered by the license in examples and tests, respectively.
+You can find examples and tests not encumbered by the license in the docs and tests directories, respectively.
 For more, look in the javascript branch of my Pygame Zero (pgzero) fork.
 
 Images were made by [Kenney](https://www.kenney.nl/) and published under [CC0 - Public Domain license](https://creativecommons.org/publicdomain/zero/1.0/).
