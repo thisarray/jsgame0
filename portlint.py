@@ -7,6 +7,8 @@ LINE_ENDINGS = ('*/', '{', '}', '[', ']', ';', ',', '||', '&&')
 """Tuple of accepted line endings in JavaScript excluding whitespace."""
 
 TRICKY_CASES = ['self.', '.image',
+                # This only makes Joystick support difficult
+                'keyboard[keys.',
                 # These are only bad for Actor instances
                 '.x', '.y']
 """List of string Python elements that should not be in the JavaScript."""
@@ -129,6 +131,20 @@ class Game {
 </script>
 </body>
 </html>''', '".image" found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+class Game {
+  constructor() {
+    if (keyboard[keys.ESCAPE]) {
+    }
+  }
+}
+</script>
+</body>
+</html>''', '"keyboard[keys." found in JavaScript!'),
             ('''<html>
 <head>
 </head>
