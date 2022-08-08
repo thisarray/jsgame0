@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test internal helper functions</title>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test internal helper functions</h1>
+
+<script>
+/*
+ * Duplicate the internal helper functions to be tested.
+ *
+ * JavaScript closure prevents access to this code in the original.
+ */
+
+  const MAX_COLOR = 255;
+
+  /*
+   * Return a CSS ID selector, adding "#" as needed.
+   */
+  function to_CSS_ID(selector) {
+    if (typeof selector !== 'string') {
+      throw new TypeError('selector must be a non-empty CSS selector string.');
+    }
+    if (selector.length <= 0) {
+      throw new RangeError('selector must be a non-empty CSS selector string.');
+    }
+
+    if (selector.startsWith('#')) {
+      return selector;
+    }
+    return '#' + selector;
+  }
+
+  /*
+   * Parse a color given as a String or an Array of Numbers.
+   */
+  function parseColor(color) {
+    if (typeof color === 'string') {
+      if (color.length < 3) {
+        return 'black';
+      }
+      else {
+        return color;
+      }
+    }
+    else {
+      let [r=0, g=0, b=0, a=MAX_COLOR] = color;
+      r = Math.max(0, Math.min(r, MAX_COLOR));
+      g = Math.max(0, Math.min(g, MAX_COLOR));
+      b = Math.max(0, Math.min(b, MAX_COLOR));
+      a = Math.max(0, Math.min(a, MAX_COLOR));
+      if (a >= MAX_COLOR) {
+        return `rgb(${ r }, ${ g }, ${ b })`;
+      }
+      else {
+        // alpha component of rgba has to be between 0 and 1, inclusive
+        return `rgba(${ r }, ${ g }, ${ b }, ${ a / MAX_COLOR })`;
+      }
+    }
+  }
+
+  /*
+   * Return the longest line in lines or the empty string.
+   */
+  function getLongest(lines) {
+    if (lines.length <= 0) {
+      return '';
+    }
+
+    let longest = 0;
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].length > lines[longest].length) {
+        longest = i;
+      }
+    }
+    return lines[longest];
+  }
+
+
+function test_to_CSS_ID() {
+  for (let value of [null, 42, {}, []]) {
+    test.assertRaises(TypeError, to_CSS_ID, value);
+  }
+  test.assertRaises(RangeError, to_CSS_ID, '');
+  for (let value of ['a', 'foobar', 'baz']) {
+    test.assertEqual(to_CSS_ID(value), '#' + value);
+  }
+  for (let value of ['#foobar', '#baz', '##foobar', '###baz']) {
+    test.assertEqual(to_CSS_ID(value), value);
+  }
+}
+
+function test_parseColor() {
+  for (let value of ['', 'a', 'bc']) {
+    test.assertEqual(parseColor(value), 'black');
+  }
+  for (let value of ['cab', 'red', 'green', 'blue', 'black', 'white', 'transparent']) {
+    test.assertEqual(parseColor(value), value);
+  }
+  for (let value of [[], [0], [0, 0], [0, 0, 0], [0, 0, 0, MAX_COLOR]]) {
+    test.assertEqual(parseColor(value), 'rgb(0, 0, 0)');
+  }
+  for (let i = 0; i < MAX_COLOR; i++) {
+    test.assertEqual(parseColor([0, 0, 0, i]), 'rgba(0, 0, 0, ' + `${ i / MAX_COLOR })`);
+    test.assertEqual(parseColor([i, i + 1, MAX_COLOR - i, i]), `rgba(${ i }, ${ i + 1 }, ${ MAX_COLOR - i }, ${ i / MAX_COLOR })`);
+
+    let expected = `rgb(${ i }, ${ i + 1 }, ${ MAX_COLOR - i })`;
+    test.assertEqual(parseColor([i, i + 1, MAX_COLOR - i]), expected);
+    test.assertEqual(parseColor([i, i + 1, MAX_COLOR - i, MAX_COLOR]), expected);
+  }
+}
+
+function test_getLongest() {
+  test.assertEqual(getLongest([]), '');
+  test.assertEqual(getLongest(['foobar']), 'foobar');
+  test.assertEqual(getLongest(['foo', 'bar']), 'foo');
+  test.assertEqual(getLongest(['foo', 'bar', 'baz']), 'foo');
+  test.assertEqual(getLongest(['foo', 'barbaz']), 'barbaz');
+  test.assertEqual(getLongest(['foobar', 'baz']), 'foobar');
+  test.assertEqual(getLongest(['the', 'longest', 'line']), 'longest');
+}
+
+test.main();
+</script>
+</body>
+
+</html>
