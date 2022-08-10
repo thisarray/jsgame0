@@ -147,6 +147,36 @@ function test_multiple_animations() {
   test.assertEqual(p.b, 20);
 }
 
+function test_multiple_animations_starvation() {
+  let p = {a: 0, b: 0};
+      a = new Inbetweener(p, 2, {a: 2}),
+      b = new Inbetweener(p, 2, {b: 20});
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 0);
+  test.assertEqual(p.b, 0);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 1);
+  test.assertEqual(p.b, 0);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 0);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 0);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.a, 2);
+  test.assertEqual(p.b, 0);
+}
+
 function test_multiple_attributes() {
   let p = {a: 0, b: 0, c: 0};
       a = new Inbetweener(p, 2, {a: 2, b: 20, c: 200});
@@ -225,6 +255,37 @@ function test_multiple_puppets() {
   test.assertTrue(b.done);
   test.assertEqual(p.attribute, 2);
   test.assertEqual(q.attribute, 20);
+}
+
+function test_multiple_puppets_starvation() {
+  let p = {attribute: 0},
+      q = {attribute: 0},
+      a = new Inbetweener(p, 2, {attribute: 2}),
+      b = new Inbetweener(q, 2, {attribute: 20});
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 0);
+  test.assertEqual(q.attribute, 0);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 1);
+  test.assertEqual(q.attribute, 0);
+  a.update(1);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 0);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 0);
+  a.update(1);
+  test.assertTrue(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(p.attribute, 2);
+  test.assertEqual(q.attribute, 0);
 }
 
 function test_on_finished() {

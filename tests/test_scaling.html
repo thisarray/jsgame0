@@ -56,21 +56,21 @@ HEIGHT = 256;
 const TILE_SIZE = 64;
 
 function test_normal() {
-  screen.set_mode('#screen');
+  screen.init('#screen');
   screen.clear();
   screen.blit('character', new Map());
 }
 
 function test_half() {
-  let half = Math.floor(TILE_SIZE / 2);
-  screen.set_mode('#half');
+  const half = Math.floor(TILE_SIZE / 2);
+  screen.init('#half');
   screen.clear();
   screen.blit('character', new Rect(half, half, half, half));
 }
 
 function test_double() {
-  let double = TILE_SIZE * 2;
-  screen.set_mode('#double');
+  const double = TILE_SIZE * 2;
+  screen.init('#double');
   screen.clear();
   screen.blit('character', new Rect(double, 0, double, double));
 }
@@ -211,7 +211,7 @@ function test_getBoundingBox() {
 }
 
 window.addEventListener('load', (event) => {
-  images.LOAD('#imageLoader img');
+  screen.init();
   test.main();
 });
 </script>

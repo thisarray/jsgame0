@@ -56,8 +56,7 @@ function test_tileset() {
 }
 
 window.addEventListener('load', (event) => {
-  images.LOAD('#imageLoader img');
-  screen.set_mode('#screen', '#reset', '#pause');
+  screen.init();
   test.main();
 });
 </script>

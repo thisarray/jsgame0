@@ -334,7 +334,7 @@ function test_isColorEqual() {
 function test_getSurface() {
   const halfWidth = Math.floor(WIDTH / 2);
 
-  screen.set_mode('#screen', '#reset', '#pause');
+  screen.init();
   screen.fill('red');
   let s = screen.getSurface();
   test.assertEqual(s.width, WIDTH);
