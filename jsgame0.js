@@ -798,29 +798,9 @@ const clock = (function () {
   }
 })();
 
-const images = (function () {
-  return {
-    // Uppercase method names to avoid clashing with lowercase names of resources
-    LOAD(selector) {
-      for (let e of Array.from(document.querySelectorAll(selector))) {
-        let name = e.dataset.name.trim();
-        this[name] = e;
-      }
-    }
-  }
-})();
+const images = {};
 
-const sounds = (function () {
-  return {
-    // Uppercase method names to avoid clashing with lowercase names of resources
-    LOAD(selector) {
-      for (let e of Array.from(document.querySelectorAll(selector))) {
-        let name = e.dataset.name.trim();
-        this[name] = e;
-      }
-    }
-  }
-})();
+const sounds = {};
 
 const music = (function () {
   /*
@@ -851,10 +831,9 @@ const music = (function () {
   }
 
   return {
-    LOAD(selector) {
-      for (let e of Array.from(document.querySelectorAll(selector))) {
-        let name = e.dataset.name.trim();
-        TRACK_MAP.set(name, e);
+    _load(loaderElement) {
+      for (let e of Array.from(loaderElement.querySelectorAll('audio'))) {
+        TRACK_MAP.set(e.dataset.name.trim(), e);
         e.addEventListener('ended', deejay);
       }
       hasMusicHook = (typeof window.on_music_end === 'function');
@@ -1016,7 +995,8 @@ const tone = (function () {
   /*
    * Convert the hard-coded number of samples in Pygame Zero to durations.
    *
-   * These constants refer to the stages of the Attack Decay Sustain Release (ADSR) envelope
+   * These constants refer to the stages of the
+   * Attack Decay Sustain Release (ADSR) envelope
    * and not the poorly named DECAY constant.
    */
   const SAMPLE_RATE = 22050;
@@ -1049,12 +1029,12 @@ const tone = (function () {
           let key = note + accidental + octave,
               frequency = value;
           if (accidental === 'b') {
-            frequency += -1;
+            frequency -= 1;
           }
           else if (accidental === '#') {
             frequency += 1;
           }
-          frequency += (4 - octave) * -12;
+          frequency += (octave - 4) * 12;
           frequency = A4 * Math.pow(TWELFTH_ROOT, frequency);
 
           NOTE_MAP.set(key, frequency);
@@ -1580,12 +1560,15 @@ Rect.prototype.toString = function () {
 }
 
 /*
- * The Actor class differs from that in Pygame Zero because x and y are not aliases for pos.
+ * The Actor class differs from that in Pygame Zero because x and y are not
+ * aliases for pos.
  * I found that decision in the Pygame Zero implementation confusing.
  * Here x and y always refer to the topleft corner of an Actor like a Rect.
- * If you want to change the location of the anchor, then use posx, posy, or pos.
+ * If you want to change the location of the anchor,
+ * then use posx, posy, or pos.
  *
- * In addition, the name of the image is stored in the "name" attribute and not the "image" attribute.
+ * In addition, the name of the image is stored in the "name" attribute and not
+ * the "image" attribute.
  * "image" is too confusing when there are actual image Surfaces, too.
  */
 class Actor {
@@ -2064,10 +2047,12 @@ class Actor {
 /*
  * Class to handle the animation.
  *
- * It cannot be named "Animation" because the Web Animation API already uses that name.
+ * It cannot be named "Animation" because the Web Animation API already uses
+ * that name.
  * So we use a more appropriate and exact name.
  *
- * In traditional animation, an inbetweener is the assistant responsible for drawing the images between the keyframes.
+ * In traditional animation, an inbetweener is the assistant responsible for
+ * drawing the images between the keyframes.
  * Shortening "inbetween" is where we got the term "tween".
  */
 class Inbetweener {
@@ -2332,15 +2317,33 @@ function animate() {
  * Global object representing your game screen.
  */
 const screen = (function () {
-  const DEFAULT_COLOR = 'white';
   const DEFAULT_FONT = 'sans-serif';
+  const DEFAULT_FONT_COLOR = 'white';
   const DEFAULT_FONT_SIZE = 24;
   const DEFAULT_LINE_HEIGHT = 1.0;
   const DEFAULT_WIDTH = 800;
   const DEFAULT_HEIGHT = 600;
   const MAX_COLOR = 255;
   const TAB_REGEX = /\t/g;
+  const TAB_REPLACEMENT = '    ';
   const TWO_PI = Math.PI * 2;
+
+  /*
+   * Return a CSS ID selector, adding "#" as needed.
+   */
+  function to_CSS_ID(selector) {
+    if (typeof selector !== 'string') {
+      throw new TypeError('selector must be a non-empty CSS selector string.');
+    }
+    if (selector.length <= 0) {
+      throw new RangeError('selector must be a non-empty CSS selector string.');
+    }
+
+    if (selector.startsWith('#')) {
+      return selector;
+    }
+    return '#' + selector;
+  }
 
   /*
    * Parse a color given as a String or an Array of Numbers.
@@ -2360,7 +2363,7 @@ const screen = (function () {
       g = Math.max(0, Math.min(g, MAX_COLOR));
       b = Math.max(0, Math.min(b, MAX_COLOR));
       a = Math.max(0, Math.min(a, MAX_COLOR));
-      if (a === MAX_COLOR) {
+      if (a >= MAX_COLOR) {
         return `rgb(${ r }, ${ g }, ${ b })`;
       }
       else {
@@ -2489,9 +2492,8 @@ const screen = (function () {
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
 
-        let x1, y1, x2, y2;
-        [x1=0, y1=0] = start;
-        [x2=0, y2=0] = end;
+        let [x1=0, y1=0] = start,
+            [x2=0, y2=0] = end;
         context.beginPath();
         context.moveTo(x1, y1);
         context.lineTo(x2, y2);
@@ -2611,11 +2613,11 @@ const screen = (function () {
         let fontSize = DEFAULT_FONT_SIZE,
             fontName = DEFAULT_FONT,
             lineHeight = DEFAULT_LINE_HEIGHT,
-            color = DEFAULT_COLOR,
+            color = DEFAULT_FONT_COLOR,
             drawOutline = false,
             // Use replace() and a regular expression
             // because it has wider support than replaceAll()
-            lines = text.replace(TAB_REGEX, '    ').split('\n'),
+            lines = text.replace(TAB_REGEX, TAB_REPLACEMENT).split('\n'),
             gcolor, x, y;
 
         if (('fontsize' in config) && (typeof config['fontsize'] === 'number')) {
@@ -2762,7 +2764,7 @@ const screen = (function () {
       /*
        * Draw the play button.
        */
-      playButton() {
+      _playButton() {
         let x = Math.floor(width / 2),
             y = Math.floor(height / 2);
         screen.clear();
@@ -2869,12 +2871,40 @@ const screen = (function () {
     },
 
     /*
-     * Setup the screen object to draw to the canvas element with ID canvasID.
-     *
-     * Also look around to see what is available.
+     * Setup the global objects images, sounds, music, and screen.
      */
-    set_mode(canvasID, resetID, pauseID) {
-      canvas = document.querySelector(canvasID);
+    init(canvasID = '#screen', resetID = '#reset', pauseID = '#pause', imagesID = '#imageLoader', soundsID = '#soundLoader', musicID = '#musicLoader') {
+      let element = document.querySelector(to_CSS_ID(imagesID)),
+          name;
+      if (element != null) {
+        // Populate the images global object
+        for (let e of Array.from(element.querySelectorAll('img'))) {
+          name = e.dataset.name.trim();
+          images[name] = e;
+        }
+      }
+
+      // Populate the sounds global object
+      element = document.querySelector(to_CSS_ID(soundsID));
+      if (element != null) {
+        for (let e of Array.from(element.querySelectorAll('audio'))) {
+          name = e.dataset.name.trim();
+          sounds[name] = e;
+        }
+      }
+
+      // Populate the music global object
+      element = document.querySelector(to_CSS_ID(musicID));
+      if (element != null) {
+        music._load(element);
+      }
+
+      if (window.TITLE) {
+        document.querySelector('title').textContent = window.TITLE;
+        document.querySelector('h1').textContent = window.TITLE;
+      }
+
+      canvas = document.querySelector(to_CSS_ID(canvasID));
       if (canvas == null) {
         // If the element does not exist
         return;
@@ -2882,10 +2912,6 @@ const screen = (function () {
       if (!canvas.getContext) {
         // If not the canvas element or Canvas API not supported
         return;
-      }
-      if (window.TITLE) {
-        document.querySelector('title').textContent = window.TITLE;
-        document.querySelector('h1').textContent = window.TITLE;
       }
       if (window.WIDTH) {
         width = canvas.width = window.WIDTH;
@@ -2909,8 +2935,20 @@ const screen = (function () {
       // Add listeners to the HTML user interface controls
       canvas.addEventListener('click', clickStart);
 
-      const reset = document.querySelector(resetID),
-            pause = document.querySelector(pauseID);
+      const pause = document.querySelector(to_CSS_ID(pauseID));
+      const reset = document.querySelector(to_CSS_ID(resetID));
+      if (pause != null) {
+        pause.addEventListener('click', (event) => {
+          if (event.target.textContent === 'Pause') {
+            screen.stop();
+            event.target.textContent = 'Unpause';
+          }
+          else {
+            event.target.textContent = 'Pause';
+            screen.go();
+          }
+        });
+      }
       if (reset != null) {
         reset.addEventListener('click', (event) => {
           clock._clearQueue();
@@ -2925,24 +2963,17 @@ const screen = (function () {
           screen.go();
         });
       }
-      if (pause != null) {
-        pause.addEventListener('click', (event) => {
-          if (event.target.textContent === 'Pause') {
-            screen.stop();
-            event.target.textContent = 'Unpause';
-          }
-          else {
-            event.target.textContent = 'Pause';
-            screen.go();
-          }
-        });
-      }
 
       // Pause the music here so when the user clicks on the canvas and
       // screen.go() is called, the music starts playing
       music.pause();
 
-      screen.draw.playButton();
+      if (typeof window.reset === 'function') {
+        // Call reset() as late as possible so the screen is properly setup and available
+        window.reset();
+      }
+
+      screen.draw._playButton();
     },
 
     go() {
@@ -2977,6 +3008,7 @@ const screen = (function () {
       start = undefined;
       running = window.requestAnimationFrame(loop);
     },
+
     stop() {
       if (running === 0) {
         // If the core game loop is not running, then do nothing
@@ -3242,11 +3274,15 @@ class Joystick {
  * A JavaScript wrapper around an ImageData object
  * to support scripts that rely on pixel manipulation.
  *
- * There is no pixel array or screen buffer to which you can write in JavaScript.
- * The closest thing is drawing to and then getting the pixels for a portion of the screen.
- * This class is a compromise to enable pixel manipulation through this mechanism.
+ * There is no pixel array or screen buffer to which you can write in
+ * JavaScript.
+ * The closest thing is drawing to and then getting the pixels for a portion of
+ * the screen.
+ * This class is a compromise to enable pixel manipulation through this
+ * mechanism.
  * As a result, it has a very limited set of methods.
- * If possible, you should think of more standard ways to achieve the same result.
+ * If possible, you should think of more standard ways to achieve the same
+ * result.
  */
 class Surface {
   /*
