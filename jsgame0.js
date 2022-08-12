@@ -2405,6 +2405,10 @@ const screen = (function () {
    * Event Handlers
    */
   function clickStart(event) {
+    if (typeof window.reset === 'function') {
+      // Call reset() here to get around prohibiting autoplay without user interaction
+      window.reset();
+    }
     screen.go();
     event.target.removeEventListener('click', clickStart);
   }
@@ -2899,7 +2903,7 @@ const screen = (function () {
         music._load(element);
       }
 
-      if (window.TITLE) {
+      if (window.TITLE && (typeof window.TITLE === 'string')) {
         document.querySelector('title').textContent = window.TITLE;
         document.querySelector('h1').textContent = window.TITLE;
       }
@@ -2913,13 +2917,13 @@ const screen = (function () {
         // If not the canvas element or Canvas API not supported
         return;
       }
-      if (window.WIDTH) {
+      if (window.WIDTH && (typeof window.WIDTH === 'number')) {
         width = canvas.width = window.WIDTH;
       }
       else {
         width = canvas.width = DEFAULT_WIDTH;
       }
-      if (window.HEIGHT) {
+      if (window.HEIGHT && (typeof window.HEIGHT === 'number')) {
         height = canvas.height = window.HEIGHT;
       }
       else {
@@ -2931,6 +2935,8 @@ const screen = (function () {
       hasKeyUp = (typeof window.on_key_up === 'function');
       hasDraw = (typeof window.draw === 'function');
       hasUpdate = (typeof window.update === 'function');
+
+      screen.draw._playButton();
 
       // Add listeners to the HTML user interface controls
       canvas.addEventListener('click', clickStart);
@@ -2963,17 +2969,6 @@ const screen = (function () {
           screen.go();
         });
       }
-
-      // Pause the music here so when the user clicks on the canvas and
-      // screen.go() is called, the music starts playing
-      music.pause();
-
-      if (typeof window.reset === 'function') {
-        // Call reset() as late as possible so the screen is properly setup and available
-        window.reset();
-      }
-
-      screen.draw._playButton();
     },
 
     go() {
