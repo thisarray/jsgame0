@@ -107,7 +107,10 @@ function test_parseColor() {
   for (let value of ['', 'a', 'bc']) {
     test.assertEqual(parseColor(value), 'black');
   }
-  for (let value of ['cab', 'red', 'green', 'blue', 'black', 'white', 'transparent']) {
+  for (let value of ['cab', 'red', 'green', 'blue', 'black', 'white',
+                     'transparent',
+                     '#000', '#000000',
+                     'rgb(0, 0, 0)', 'rgba(0, 0, 0, 1)']) {
     test.assertEqual(parseColor(value), value);
   }
   for (let value of [[], [0], [0, 0], [0, 0, 0], [0, 0, 0, MAX_COLOR]]) {
@@ -118,6 +121,7 @@ function test_parseColor() {
     test.assertEqual(parseColor([i, i + 1, MAX_COLOR - i, i]), `rgba(${ i }, ${ i + 1 }, ${ MAX_COLOR - i }, ${ i / MAX_COLOR })`);
 
     let expected = `rgb(${ i }, ${ i + 1 }, ${ MAX_COLOR - i })`;
+    test.assertEqual(parseColor(expected), expected);
     test.assertEqual(parseColor([i, i + 1, MAX_COLOR - i]), expected);
     test.assertEqual(parseColor([i, i + 1, MAX_COLOR - i, MAX_COLOR]), expected);
   }
