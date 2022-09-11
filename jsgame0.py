@@ -86,11 +86,7 @@ The game screen appears here if your browser supports the Canvas API.
 # Note the newline to handle the code not ending with newline
 HTML_TO_END = """
 window.addEventListener('load', (event) => {
-  images.LOAD('#imageLoader img');
-  sounds.LOAD('#soundLoader audio');
-  music.LOAD('#musicLoader audio');
-  reset();
-  screen.set_mode('#screen', '#reset', '#pause');
+  screen.init();
 });
 </script>
 </body>
@@ -147,7 +143,7 @@ def list_directory(directory, accepted=()):
                     result.append(f)
             else:
                 result.append(f)
-    return result
+    return sorted(result)
 
 def print_font_load(filenames):
     """Print the @font-face CSS rules to load fonts from filenames in fonts/.
@@ -177,7 +173,6 @@ def print_image_load(filenames):
     print('<section id="imageLoader" class="hidden">')
     for f in filenames:
         name, _ = os.path.splitext(f)
-        # Put the name in the alt attribute to avoid it clashing with sounds
         print('  <img class="hidden" src="images/{0}" alt="{1}" \
 data-name="{1}">'.format(f, name))
     print('</section>')

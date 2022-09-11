@@ -10,7 +10,9 @@ TRICKY_CASES = ['self.', '.image',
                 # This only makes Joystick support difficult
                 'keyboard[keys.',
                 # These are only bad for Actor instances
-                '.x', '.y']
+                '.x', '.y',
+                # Legacy loader calls
+                '.LOAD(', '.set_mode(', '.playButton(']
 """List of string Python elements that should not be in the JavaScript."""
 
 class _PortParser(html.parser.HTMLParser):
@@ -66,6 +68,7 @@ class _PortParser(html.parser.HTMLParser):
                     continue
                 index = line.find('//')
                 if index >= 0:
+                    # Remove the inline comment
                     line = line[0:index].rstrip()
                 # Check the endings of lines that are not comments
                 cleaned = line.rstrip()
@@ -170,7 +173,41 @@ class Game {
 }
 </script>
 </body>
-</html>''', '".y" found in JavaScript!')]:
+</html>''', '".y" found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+window.addEventListener('load', (event) => {
+  images.LOAD('#imageLoader img');
+});
+</script>
+</body>
+</html>''', '".LOAD(" found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+window.addEventListener('load', (event) => {
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+</html>''', '".set_mode(" found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+window.addEventListener('load', (event) => {
+  reset();
+  screen.draw.playButton();
+});
+</script>
+</body>
+</html>''', '".playButton(" found in JavaScript!')]:
             parser = _PortParser()
             parser.feed(value)
             self.assertEqual(parser.get_errors(), [expected])
@@ -190,26 +227,29 @@ class Game {
             parser = _PortParser()
             parser.feed(value.replace(';', ';    '))
             errors = parser.get_errors()
-            self.assertEqual(len(errors), 2)
+            self.assertGreater(len(errors), 1)
             self.assertEqual(errors[0], expected)
-            self.assertTrue(
-                errors[1].startswith('Trailing whitespace in line:'))
+            for error in errors[1:]:
+                self.assertTrue(
+                    error.startswith('Trailing whitespace in line:'))
 
             parser = _PortParser()
             parser.feed(value.replace(';', ''))
             errors = parser.get_errors()
-            self.assertEqual(len(errors), 2)
+            self.assertGreater(len(errors), 1)
             self.assertEqual(errors[0], expected)
-            self.assertTrue(
-                errors[1].startswith('Line does not end correctly:'))
+            for error in errors[1:]:
+                self.assertTrue(
+                    error.startswith('Line does not end correctly:'))
 
             parser = _PortParser()
             parser.feed(value.replace(';', ' // comment'))
             errors = parser.get_errors()
-            self.assertEqual(len(errors), 2)
+            self.assertGreater(len(errors), 1)
             self.assertEqual(errors[0], expected)
-            self.assertTrue(
-                errors[1].startswith('Line does not end correctly:'))
+            for error in errors[1:]:
+                self.assertTrue(
+                    error.startswith('Line does not end correctly:'))
 
 if __name__ == '__main__':
     import argparse
@@ -238,7 +278,7 @@ if __name__ == '__main__':
             errors = port_parser.get_errors()
             if len(errors) > 0:
                 if len(paths) > 1:
-                    print(path)
+                    print('==> {} <=='.format(path))
                 for error in errors:
                     print(error)
     else:
