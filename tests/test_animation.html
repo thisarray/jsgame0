@@ -590,6 +590,30 @@ function test_animate_existing() {
   test.assertEqual(Inbetweener.queue, []);
 }
 
+function test_animate_replace() {
+  let p = {attribute: 0},
+      a = new Inbetweener(p, 2, {attribute: 2}),
+      b = new Inbetweener(p, 2, {attribute: 20});
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(Inbetweener.queue, []);
+
+  animate(a);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(Inbetweener.queue, [a]);
+
+  animate(b);
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(Inbetweener.queue, [b]);
+
+  Inbetweener._clearQueue();
+  test.assertFalse(a.done);
+  test.assertFalse(b.done);
+  test.assertEqual(Inbetweener.queue, []);
+}
+
 function test_animate_errors() {
   let p = {attribute: 0}, a;
   test.assertRaises(Error, animate);
