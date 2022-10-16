@@ -2304,6 +2304,8 @@ function animate() {
   }
   if (animation instanceof Inbetweener) {
     if (!animation.done) {
+      // Newly scheduled animations will overwrite old ones
+      Inbetweener.queue = Inbetweener.queue.filter(a => (a.puppet != animation.puppet));
       Inbetweener.queue.push(animation);
     }
     return animation;
