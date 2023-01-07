@@ -2752,7 +2752,7 @@ const screen = (function () {
         if ('gcolor' in config) {
           gcolor = parseColor(config['gcolor']);
         }
-        if ('owidth' in config) {
+        if (('owidth' in config) && (typeof config['owidth'] === 'number')) {
           drawOutline = true;
           context.lineWidth = config['owidth'];
           if ('ocolor' in config) {
