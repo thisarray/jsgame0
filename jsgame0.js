@@ -2398,6 +2398,7 @@ const screen = (function () {
       width = DEFAULT_WIDTH,
       height = DEFAULT_HEIGHT,
       context = null,
+      usesKeyboard = false,
       hasKeyDown = false,
       hasKeyUp = false,
       hasDraw = false,
@@ -2970,6 +2971,18 @@ const screen = (function () {
       hasDraw = (typeof window.draw === 'function');
       hasUpdate = (typeof window.update === 'function');
 
+      /*
+       * Inspect all script blocks for code that uses the keyboard global.
+       *
+       * This can be fooled but then you are just dooming yourself.
+       */
+      for (const element of document.querySelectorAll('script')) {
+        if (element.textContent.includes('keyboard[')) {
+          usesKeyboard = true;
+          break;
+        }
+      }
+
       screen.draw._playButton();
 
       // Add listeners to the HTML user interface controls
@@ -2992,10 +3005,11 @@ const screen = (function () {
 
       // Add event listeners
 
-      // Cannot make KeyboardEvent listeners conditional because user may
-      // use keyboard builtin without defining on_key_* handlers
-      window.addEventListener('keydown', keydown, true);
-      window.addEventListener('keyup', keyup, true);
+      if (usesKeyboard || hasKeyDown || hasKeyUp) {
+        // Only add KeyboardEvent listeners if necessary because it is on window
+        window.addEventListener('keydown', keydown, true);
+        window.addEventListener('keyup', keyup, true);
+      }
 
       if (canvas != null) {
         if (typeof window.on_mouse_down === 'function') {
