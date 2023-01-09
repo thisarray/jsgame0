@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test screen.draw.textbox()</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+section.test {
+  border: 1px dotted blue;
+  border-radius: 5px;
+  margin: 1em 0;
+  padding: 1em;
+}
+section.test h2 {
+  margin: 0 0 1em 0;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test screen.draw.textbox()</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+
+<output id="result">
+</output>
+
+<script>
+WIDTH = 400;
+HEIGHT = 200;
+
+const canvas = document.querySelector('#screen');
+const result = document.querySelector('#result');
+const inset = new Rect(50, 25, Math.floor(WIDTH / 2), HEIGHT - (25 * 2));
+
+/*
+ * Append an image of the screen to output.
+ */
+function appendScreen(name) {
+  if (result == null) {
+    return;
+  }
+
+  let section, header, image;
+  section = document.createElement('section');
+  section.classList.add('test');
+
+  header = document.createElement('h2');
+  header.appendChild(document.createTextNode(name));
+  section.appendChild(header);
+
+  image = document.createElement('img');
+  image.src = canvas.toDataURL();
+  section.appendChild(image);
+
+  result.appendChild(section);
+}
+
+function test_alpha() {
+  let config;
+  for (let alpha of ['foobar', 1, 0.75, 0.5, 0.25, 0]) {
+    screen.clear();
+    config = {
+      pos: [0, 0],
+      alpha: alpha
+    }
+    screen.draw.textbox('alpha = ' + alpha, inset, config);
+    appendScreen('test_alpha_' + alpha);
+  }
+}
+
+function test_color() {
+  let config;
+  for (let color of ['foobar', 42, 'red', 'green', 'blue']) {
+    screen.clear();
+    config = {
+      pos: [0, 0],
+      color: color
+    }
+    screen.draw.textbox(color, inset, config);
+    appendScreen('test_color_' + color);
+  }
+}
+
+function test_font() {
+  let config;
+  for (let name of ['foobar', 'monospace', 'sans-serif', 'serif']) {
+    screen.clear();
+    config = {
+      pos: [0, 0],
+      fontname: name
+    }
+    screen.draw.textbox(name, inset, config);
+    appendScreen('test_fontname_' + name);
+  }
+}
+
+function test_owidth() {
+  let config;
+  for (let width of ['foobar', 1, 2]) {
+    screen.clear();
+    config = {
+      pos: [0, 0],
+      ocolor: 'yellow',
+      owidth: width
+    }
+    screen.draw.textbox('owidth = ' + width, inset, config);
+    appendScreen('test_owidth_' + width);
+  }
+}
+
+function test_position() {
+  let config;
+  for (let [position, coordinates] of [
+    ['foobar', [0, 0]],
+    ['topleft', [0, 0]],
+    ['midtop', [Math.floor(WIDTH / 2), 0]],
+    ['topright', [WIDTH, 0]],
+    ['midleft', [0, Math.floor(HEIGHT / 2)]],
+    ['center', [Math.floor(WIDTH / 2), Math.floor(HEIGHT / 2)]],
+    ['midright', [WIDTH, Math.floor(HEIGHT / 2)]],
+    ['bottomleft', [0, HEIGHT]],
+    ['midbottom', [Math.floor(WIDTH / 2), HEIGHT]],
+    ['bottomright', [WIDTH, HEIGHT]],
+    ['pos', [Math.floor(WIDTH / 2), Math.floor(HEIGHT / 2)]]]) {
+    screen.clear();
+    config = {
+      color: 'white'
+    }
+    config[position] = coordinates;
+    screen.draw.textbox(position, inset, config);
+    appendScreen('test_position_' + position);
+  }
+}
+
+function test_shadow() {
+  let config;
+  for (let coordinates of [[1, 1], [5, 5], [10, 10]]) {
+    screen.clear();
+    config = {
+      pos: [0, 0],
+      scolor: 'yellow',
+      shadow: coordinates
+    }
+    screen.draw.textbox(`shadow = [${ coordinates[0] }, ${ coordinates[1] }]`, inset, config);
+    appendScreen('test_shadow_' + coordinates[0]);
+  }
+}
+
+function test_size() {
+  let config;
+  for (let size of ['foobar', 12, 16, 24, 48, 64]) {
+    screen.clear();
+    config = {
+      pos: [0, 0],
+      fontsize: size
+    }
+    screen.draw.textbox('size = ' + size, inset, config);
+    appendScreen('test_fontsize_' + size);
+  }
+}
+
+screen.init();
+test.main();
+</script>
+</body>
+
+</html>
