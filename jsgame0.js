@@ -2566,11 +2566,12 @@ const screen = (function () {
         context.fill();
         context.restore();
       },
-      polygon(points, color) {
+      polygon(points, color, width = 1) {
         if (context == null) {
           return;
         }
         context.save();
+        context.lineWidth = width;
         context.strokeStyle = parseColor(color);
 
         context.beginPath();
