@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Fullscreen</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+  </style>
+</head>
+
+<body>
+<section id="imageLoader" class="hidden">
+  <img class="hidden" src="images/tiles.png" alt="tiles" data-name="tiles">
+</section>
+
+<main>
+<h1>Test Fullscreen</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+</main>
+
+<script>
+WIDTH = 320;
+HEIGHT = 64;
+
+function draw() {
+  screen.blit('tiles', [0, 0]);
+}
+
+/*
+ * The #screen element.
+ *
+ * Cannot name it "screen" due to the screen global.
+ */
+const gameScreen = document.querySelector('#screen');
+
+if (gameScreen.requestFullscreen) {
+  // If Fullscreen API is supported on the browser
+  function on_key_down(key) {
+    if (document.fullscreenElement == null) {
+      // If no element is currently being displayed fullscreen
+      gameScreen.requestFullscreen();
+    }
+    else {
+      // Otherwise, currently in fullscreen mode
+      document.exitFullscreen();
+    }
+  }
+}
+
+window.addEventListener('load', (event) => {
+  screen.init();
+});
+</script>
+</body>
+
+</html>
