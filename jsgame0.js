@@ -2430,6 +2430,10 @@ const screen = (function () {
       resetButton.addEventListener('click', (event) => {
         clock._clearQueue();
         Inbetweener._clearQueue();
+        for (const n of Object.getOwnPropertyNames(sounds)) {
+          sounds[n].loop = false;
+          sounds[n].currentTime = sounds[n].duration;
+        }
         music.stop();
         if (typeof window.reset === 'function') {
           window.reset();
@@ -3024,6 +3028,11 @@ const screen = (function () {
         }
       }
 
+      for (const n of Object.getOwnPropertyNames(sounds)) {
+        if (sounds[n].loop) {
+          sounds[n].play();
+        }
+      }
       music.unpause();
       screen.clear();
 
@@ -3042,6 +3051,16 @@ const screen = (function () {
       window.cancelAnimationFrame(running);
       running = 0;
 
+      /*
+       * Pause any sounds that loop.
+       *
+       * Let sounds that do not loop run to completion.
+       */
+      for (const n of Object.getOwnPropertyNames(sounds)) {
+        if (sounds[n].loop) {
+          sounds[n].pause();
+        }
+      }
       music.pause();
 
       // Remove event listeners
