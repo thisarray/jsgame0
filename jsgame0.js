@@ -2403,6 +2403,13 @@ const screen = (function () {
       hasKeyUp = false,
       hasDraw = false,
       hasUpdate = false,
+      /*
+       * Set of string names of currently playing sounds.
+       *
+       * Tracked here so Object.getOwnPropertyNames(sounds)
+       * returns the names of all sounds.
+       */
+      playingSet = new Set(),
       running = 0,
       start;
 
@@ -2434,6 +2441,7 @@ const screen = (function () {
           sounds[n].loop = false;
           sounds[n].currentTime = sounds[n].duration;
         }
+        playingSet.clear();
         music.stop();
         if (typeof window.reset === 'function') {
           window.reset();
@@ -2490,6 +2498,14 @@ const screen = (function () {
         x = Math.floor(event.clientX - box.left),
         y = Math.floor(event.clientY - box.top);
     window.on_mouse_move([x, y], [event.movementX, event.movementY], event.buttons);
+  }
+
+  function soundStart(event) {
+    playingSet.add(event.target.dataset.name.trim());
+  }
+
+  function soundEnd(event) {
+    playingSet.delete(event.target.dataset.name.trim());
   }
 
   /*
@@ -2934,6 +2950,8 @@ const screen = (function () {
         for (let e of Array.from(element.querySelectorAll('audio'))) {
           name = e.dataset.name.trim();
           sounds[name] = e;
+          e.addEventListener('play', soundStart);
+          e.addEventListener('ended', soundEnd);
         }
       }
 
@@ -3028,12 +3046,13 @@ const screen = (function () {
         }
       }
 
-      for (const n of Object.getOwnPropertyNames(sounds)) {
-        if (sounds[n].loop) {
-          sounds[n].play();
-        }
+      // Unpause any sounds that were previously playing
+      for (const n of playingSet) {
+        // HTMLMediaElement only has play() and pause() methods
+        sounds[n].play();
       }
       music.unpause();
+
       screen.clear();
 
       // Start the core game loop
@@ -3051,15 +3070,9 @@ const screen = (function () {
       window.cancelAnimationFrame(running);
       running = 0;
 
-      /*
-       * Pause any sounds that loop.
-       *
-       * Let sounds that do not loop run to completion.
-       */
-      for (const n of Object.getOwnPropertyNames(sounds)) {
-        if (sounds[n].loop) {
-          sounds[n].pause();
-        }
+      // Pause any sounds that are currently playing
+      for (const n of playingSet) {
+        sounds[n].pause();
       }
       music.pause();
 
