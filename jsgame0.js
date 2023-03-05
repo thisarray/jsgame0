@@ -990,8 +990,6 @@ const tone = (function () {
    */
   const NOTE_MAP = new Map();
 
-  const context = new (window.AudioContext || window.webkitAudioContext)();
-
   /*
    * Convert the hard-coded number of samples in Pygame Zero to durations.
    *
@@ -1004,10 +1002,16 @@ const tone = (function () {
   const DECAY = 650 / SAMPLE_RATE;
   const RELEASE = 2000 / SAMPLE_RATE;
 
+  let context = null;
+
   /*
-   * Lazily build the map as needed.
+   * Lazily build the map and create the AudioContext as needed.
    */
   function populateNotes() {
+    if (context == null) {
+      context = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
     if (NOTE_MAP.size > 0) {
       return;
     }
