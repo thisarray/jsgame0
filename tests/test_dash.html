@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test dashed lines</title>
+  <script src="../jsgame0.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+section.test {
+  border: 1px dotted blue;
+  border-radius: 5px;
+  margin: 1em 0;
+  padding: 1em;
+}
+section.test h2 {
+  margin: 0 0 1em 0;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test dashed lines</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+
+<output id="result">
+</output>
+
+<script>
+WIDTH = 400;
+HEIGHT = 200;
+
+/*
+ * Array coordinates of the center of the canvas.
+ */
+const CENTER = [Math.floor(WIDTH / 2), Math.floor(HEIGHT / 2)];
+
+/*
+ * Array of values to test as the dashArray argument.
+ */
+const DASH_ARRAYS = [null, 42, '', [], 'foobar', [4], [4, 2], [4, 'foo', 2, 'bar']];
+
+/*
+ * Array of values to test as the dashOffset argument.
+ */
+const DASH_OFFSETS = [null, '', [], 'foobar', -42, 42];
+
+const canvas = document.querySelector('#screen');
+const result = document.querySelector('#result');
+
+/*
+ * Append an image of the screen to output.
+ */
+function appendScreen(name) {
+  if (result == null) {
+    return;
+  }
+
+  let section, header, image;
+  section = document.createElement('section');
+  section.classList.add('test');
+
+  header = document.createElement('h2');
+  header.appendChild(document.createTextNode(name));
+  section.appendChild(header);
+
+  image = document.createElement('img');
+  image.src = canvas.toDataURL();
+  section.appendChild(image);
+
+  result.appendChild(section);
+}
+
+function test_line() {
+  for (let value of DASH_ARRAYS) {
+    screen.clear();
+    screen.draw.line([0, CENTER[1]], [WIDTH, CENTER[1]], 'yellow', 8, value);
+    appendScreen('test_line_dashArray = ' + value);
+  }
+  for (let value of DASH_OFFSETS) {
+    screen.clear();
+    screen.draw.line([0, CENTER[1]], [WIDTH, CENTER[1]], 'yellow', 8, [16, 8], value);
+    appendScreen('test_line_dashOffset = ' + value);
+  }
+}
+
+function test_circle() {
+  for (let value of DASH_ARRAYS) {
+    screen.clear();
+    screen.draw.circle(CENTER, 42, 'yellow', 8, 0, 360, value);
+    appendScreen('test_circle_dashArray = ' + value);
+  }
+  for (let value of DASH_OFFSETS) {
+    screen.clear();
+    screen.draw.circle(CENTER, 42, 'yellow', 8, 0, 360, [16, 8], value);
+    appendScreen('test_circle_dashOffset = ' + value);
+  }
+}
+
+function test_polygon() {
+  for (let value of DASH_ARRAYS) {
+    screen.clear();
+    screen.draw.polygon([[CENTER[0], CENTER[1] - 50], [300, 150], [100, 150]], 'yellow', 8, value);
+    appendScreen('test_polygon_dashArray = ' + value);
+  }
+  for (let value of DASH_OFFSETS) {
+    screen.clear();
+    screen.draw.polygon([[CENTER[0], CENTER[1] - 50], [300, 150], [100, 150]], 'yellow', 8, [16, 8], value);
+    appendScreen('test_polygon_dashOffset = ' + value);
+  }
+}
+
+function test_rect() {
+  for (let value of DASH_ARRAYS) {
+    screen.clear();
+    screen.draw.rect(new Rect(50, 50, 50, 50), 'yellow', 8, value);
+    appendScreen('test_rect_dashArray = ' + value);
+  }
+  for (let value of DASH_OFFSETS) {
+    screen.clear();
+    screen.draw.rect(new Rect(50, 50, 50, 50), 'yellow', 8, [16, 8], value);
+    appendScreen('test_rect_dashOffset = ' + value);
+  }
+}
+
+function test_start() {
+  let angles = ['foobar'];
+  for (let value = -720; value <= 720; value += 45) {
+    angles.push(value);
+  }
+  for (let value of angles) {
+    screen.clear();
+    screen.draw.circle(CENTER, 42, 'yellow', 8, value);
+    appendScreen(`test_circle_start = [${ value } to 360]`);
+    screen.clear();
+    screen.draw.filled_circle(CENTER, 42, 'yellow', value);
+    appendScreen(`test_filled_start = [${ value } to 360]`);
+  }
+}
+
+function test_end() {
+  let angles = ['foobar'];
+  for (let value = -720; value <= 720; value += 45) {
+    angles.push(value);
+  }
+  for (let value of angles) {
+    screen.clear();
+    screen.draw.circle(CENTER, 42, 'yellow', 8, 0, value);
+    appendScreen(`test_circle_end = [0 to ${ value }]`);
+    screen.clear();
+    screen.draw.filled_circle(CENTER, 42, 'yellow', 0, value);
+    appendScreen(`test_filled_end = [0 to ${ value }]`);
+  }
+}
+
+function test_left() {
+  screen.clear();
+  screen.draw.circle(CENTER, 42, 'yellow', 8, 90, 270);
+  appendScreen('test_circle_left');
+  screen.clear();
+  screen.draw.filled_circle(CENTER, 42, 'yellow', 90, 270);
+  appendScreen('test_filled_left');
+}
+
+function test_right() {
+  screen.clear();
+  screen.draw.circle(CENTER, 42, 'yellow', 8, 270, 90);
+  appendScreen('test_circle_right');
+  screen.clear();
+  screen.draw.filled_circle(CENTER, 42, 'yellow', 270, 90);
+  appendScreen('test_filled_right');
+}
+
+screen.init();
+test.main();
+</script>
+</body>
+
+</html>
