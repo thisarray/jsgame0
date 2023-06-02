@@ -1071,7 +1071,8 @@ const tone = (function () {
 
       populateNotes();
       let cleaned = note.trim().toLowerCase(),
-          envelope = [], gain, oscillator;
+          envelope = [],
+          gain, oscillator;
       if (NOTE_MAP.has(cleaned)) {
         // Create the Attack Decay Sustain Release (ADSR) envelope
         if (duration < (ATTACK + DECAY)) {
@@ -1305,7 +1306,8 @@ class Rect {
     this.height = this.height + dy;
   }
   clamp() {
-    let rect = new Rect(...arguments), x, y;
+    let rect = new Rect(...arguments),
+        x, y;
 
     if (this.width >= rect.width) {
       x = rect.x + Math.floor(rect.width / 2) - Math.floor(this.width / 2);
@@ -1343,7 +1345,8 @@ class Rect {
     this.height = rect.height;
   }
   clip() {
-    let rect = new Rect(...arguments), x, y, width, height;
+    let rect = new Rect(...arguments),
+        x, y, width, height;
 
     if ((this.x >= rect.x) && (this.x < (rect.x + rect.width))) {
       x = this.x;
@@ -1417,9 +1420,10 @@ class Rect {
     let xs = [this.x],
         ys = [this.y],
         widths = [this.x + this.width],
-        heights = [this.y + this.height];
+        heights = [this.y + this.height],
+        rect;
     for (let other of others) {
-      let rect = new Rect(other);
+      rect = new Rect(other);
       xs.push(rect.x);
       ys.push(rect.y);
       widths.push(rect.x + rect.width);
@@ -1499,9 +1503,10 @@ class Rect {
   }
   _collidelist(others) {
     let result = [],
-        i = 0;
+        i = 0,
+        rect;
     for (let other of others) {
-      let rect = new Rect(other);
+      rect = new Rect(other);
       if (this.colliderect(rect)) {
         result.push(i);
       }
@@ -2547,13 +2552,22 @@ const screen = (function () {
 
   return {
     draw: {
-      line(start, end, color, width = 1) {
+      line(start, end, color, width = 1, dashArray = null, dashOffset = 0) {
         if (context == null) {
           return;
         }
         context.save();
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
+        if (Array.isArray(dashArray)) {
+          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          if (dashArray.length > 0) {
+            context.setLineDash(dashArray);
+            if (typeof dashOffset === 'number') {
+              context.lineDashOffset = dashOffset;
+            }
+          }
+        }
 
         let [x1=0, y1=0] = start,
             [x2=0, y2=0] = end;
@@ -2563,40 +2577,110 @@ const screen = (function () {
         context.stroke();
         context.restore();
       },
-      circle(pos, radius, color, width = 1) {
+      circle(pos, radius, color, width = 1, start = 0, end = 360, dashArray = null, dashOffset = 0) {
         if (context == null) {
           return;
         }
+
+        if (typeof start === 'number') {
+          while (start < 0) {
+            start += 360;
+          }
+          start = (start % 360) * Math.PI / 180;
+        }
+        else {
+          start = 0;
+        }
+
+        if (typeof end === 'number') {
+          end = end % 360;
+          if (end === 0) {
+            // If end is a multiple of 360, then make sure it goes around once
+            end = TWO_PI;
+          }
+          else {
+            end = end * Math.PI / 180;
+          }
+        }
+        else {
+          end = TWO_PI;
+        }
+
         context.save();
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
+        if (Array.isArray(dashArray)) {
+          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          if (dashArray.length > 0) {
+            context.setLineDash(dashArray);
+            if (typeof dashOffset === 'number') {
+              context.lineDashOffset = dashOffset;
+            }
+          }
+        }
 
         let [x=0, y=0] = pos;
         context.beginPath();
-        context.arc(x, y, radius, 0, TWO_PI, false);
+        // Pygame Zero has 90 degrees at 12 o'clock and 180 degrees at 9 o'clock
+        context.arc(x, y, radius, -start, -end, true);
         context.stroke();
         context.restore();
       },
-      filled_circle(pos, radius, color) {
+      filled_circle(pos, radius, color, start = 0, end = 360) {
         if (context == null) {
           return;
         }
+
+        if (typeof start === 'number') {
+          while (start < 0) {
+            start += 360;
+          }
+          start = (start % 360) * Math.PI / 180;
+        }
+        else {
+          start = 0;
+        }
+
+        if (typeof end === 'number') {
+          end = end % 360;
+          if (end === 0) {
+            // If end is a multiple of 360, then make sure it goes around once
+            end = TWO_PI;
+          }
+          else {
+            end = end * Math.PI / 180;
+          }
+        }
+        else {
+          end = TWO_PI;
+        }
+
         context.save();
         context.fillStyle = parseColor(color);
 
         let [x=0, y=0] = pos;
         context.beginPath();
-        context.arc(x, y, radius, 0, TWO_PI, false);
+        // Pygame Zero has 90 degrees at 12 o'clock and 180 degrees at 9 o'clock
+        context.arc(x, y, radius, -start, -end, true);
         context.fill();
         context.restore();
       },
-      polygon(points, color, width = 1) {
+      polygon(points, color, width = 1, dashArray = null, dashOffset = 0) {
         if (context == null) {
           return;
         }
         context.save();
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
+        if (Array.isArray(dashArray)) {
+          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          if (dashArray.length > 0) {
+            context.setLineDash(dashArray);
+            if (typeof dashOffset === 'number') {
+              context.lineDashOffset = dashOffset;
+            }
+          }
+        }
 
         context.beginPath();
         let isFirst = true;
@@ -2637,7 +2721,7 @@ const screen = (function () {
         context.fill();
         context.restore();
       },
-      rect(rect, color, width = 1) {
+      rect(rect, color, width = 1, dashArray = null, dashOffset = 0) {
         if (!(rect instanceof Rect)) {
           throw new TypeError('rect must be a Rect.');
         }
@@ -2647,6 +2731,15 @@ const screen = (function () {
         context.save();
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
+        if (Array.isArray(dashArray)) {
+          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          if (dashArray.length > 0) {
+            context.setLineDash(dashArray);
+            if (typeof dashOffset === 'number') {
+              context.lineDashOffset = dashOffset;
+            }
+          }
+        }
         context.strokeRect(rect.x, rect.y, rect.width, rect.height);
         context.restore();
       },
@@ -3100,7 +3193,10 @@ const screen = (function () {
         return;
       }
 
-      let x = 0, y = 0, w = width, h = height;
+      let x = 0,
+          y = 0,
+          w = width,
+          h = height;
       if (arguments.length < 4) {
         [w=width, h=height] = arguments;
       }
