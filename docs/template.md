@@ -1,7 +1,7 @@
-# Anatomy of the HTML template
+# Anatomy of the HTML Boilerplate
 
-jsgame0.js uses an HTML template to setup the structures it needs in the browser.
-Below is an explanation of what each part of the template does.
+[jsgame0.js](https://github.com/thisarray/jsgame0) uses an HTML boilerplate to setup the structures it needs in the browser.
+Below is an explanation of what each part does.
 
 ```html
 <!DOCTYPE html>
@@ -14,10 +14,10 @@ Below is an explanation of what each part of the template does.
   <script src="jsgame0.js"></script>
 ```
 
-Standard preamble to tell the browser the page uses HTML5, is in US English, and contains characters encoded using UTF-8.
+This is the standard HTML5 preamble to tell the browser the page uses HTML5, is in US English, and contains characters encoded using UTF-8.
 The viewport meta tag tells the browser not to zoom in on the page.
 The title tag contains the title of the page.
-The script tag loads jsgame0.js.
+The script tag tells the browser where to find the JavaScript file for [jsgame0.js](https://github.com/thisarray/jsgame0) relative to the page.
 
 ```html
   <style type="text/css" media="screen">
@@ -41,9 +41,7 @@ body {
 ```
 
 [Cascading Style Sheets (CSS)](https://developer.mozilla.org/en-US/docs/Web/CSS) is used to style elements of the page.
-The [@font-face CSS at-rule](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face) is used to load any fonts used in the port.
-The hidden rule keeps the image and audio tags used to load the resources from being drawn.
-Without this rule, you would see images and audio controls in the body of the page.
+The [@font-face CSS at-rule](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face) is used to load any fonts used in the game.
 
 ```html
 </head>
@@ -63,13 +61,16 @@ Without this rule, you would see images and audio controls in the body of the pa
 <h1>Title</h1>
 ```
 
-The head section is closed as we start the body of the page.
-The imageLoader, soundLoader, and musicLoader sections load the respective resource.
+The `imageLoader`, `soundLoader`, and `musicLoader` sections load the respective resources.
 They are placed at the start of the body section so the browser sees them as soon as possible and starts to download them over the network which takes time.
 Both sound and music use the same audio tag.
 There is no difference to the HTML.
 They only differ in the interface used to access them.
 The title is duplicated in the h1 tag.
+
+The tags in the `imageLoader`, `soundLoader`, and `musicLoader` sections get a CSS class of "hidden" to hide them.
+Without this CSS class, images and audio controls would show up on the page which is not what we want.
+This does not stop the browser from loading these resources though.
 
 ```html
 <canvas id="screen">
@@ -81,9 +82,9 @@ The game screen appears here if your browser supports the Canvas API.
 </section>
 ```
 
-The canvas tag creates an area where jsgame0.js can draw the screen.
-Below it are 2 buttons to reset and pause the port.
-These elements are connected to the screen global object later.
+The canvas tag creates an area where [jsgame0.js](https://github.com/thisarray/jsgame0) can draw the screen.
+Below it are 2 buttons to reset and pause the game.
+These elements are connected to the `screen` global object later.
 
 ```html
 <h2>Original Python code</h2>
@@ -94,18 +95,15 @@ These elements are connected to the screen global object later.
 </main>
 ```
 
-Closing out the main section in the body is the original Python code.
+Closing out the main section is the original Python code.
+It is included for easy comparison to the JavaScript port.
 
 ```html
 <script>
 // JavaScript port
 
 window.addEventListener('load', (event) => {
-  images.LOAD('#imageLoader img');
-  sounds.LOAD('#soundLoader audio');
-  music.LOAD('#musicLoader audio');
-  reset();
-  screen.set_mode('#screen', '#reset', '#pause');
+  screen.init();
 });
 </script>
 </body>
@@ -115,6 +113,8 @@ window.addEventListener('load', (event) => {
 
 The JavaScript port is placed inside a script tag at the end of the body section.
 This way it is run after all the page elements have been created.
-To make sure all the resources are available, the port waits for the page to finish loading before running.
-This is done by registering an event listener to reset and run the port once the page has loaded.
-The screen global object is given the IDs of the canvas tag, the reset button, and the pause button so it knows where to draw and can respond to button clicks.
+
+We wait in an event listener for the page to finish loading to make sure all the resources are available before running.
+The game then waits for the user to click in the canvas.
+The game NEVER autoplays because that can be annoying.
+When the user finally clicks in the canvas, `reset()` is called and the game started.
