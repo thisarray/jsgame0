@@ -8,6 +8,7 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
 ## Differences from Pygame Zero
 
 - There is some boilerplate code to get the browser to load the JavaScript, images, sounds, and music.
+  You can read an explanation [here](https://github.com/thisarray/jsgame0/blob/master/docs/boilerplate.md).
   So instead of the "zero" standing for no boilerplate, it stands for no installation.
 
 - Actor class
@@ -29,6 +30,14 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
 
 - There is no storage because the
   [localStorage object](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API) serves the same purpose.
+
+- dashArray and dashOffset arguments allow unfilled primitives (line, circle, polygon, rect) to use dashed lines.
+  The position of these arguments are not stable.
+  They will move when the signatures of the methods change in Pygame Zero.
+
+- start and end angles allow you to specify how much of a circle to draw or fill.
+  The position of these arguments are not stable.
+  They will move when the signatures of the methods change in Pygame Zero.
 
 ## Why?
 
