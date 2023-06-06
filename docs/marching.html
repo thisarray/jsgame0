@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marching Ants</title>
+  <script src="../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+
+<main>
+<h1>Marching Ants</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<p>An example of the marching ants effect.</p>
+</main>
+
+<script>
+let offset;
+
+function reset() {
+  offset = 0;
+}
+
+function draw() {
+  screen.clear();
+  screen.draw.rect(new Rect(10, 10, 100, 100), 'white', 2, [4, 2], offset);
+}
+
+function update(dt) {
+  offset++;
+
+  if (offset > 16) {
+    offset = 0;
+  }
+}
+
+window.addEventListener('load', (event) => {
+  screen.init();
+});
+</script>
+</body>
+
+</html>
