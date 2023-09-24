@@ -2092,7 +2092,7 @@ class Inbetweener {
   static in_elastic(n) {
     let p = 0.3,
         s = p / 4.0;
-    if (n == 1) {
+    if (n === 1) {
       return 1.0;
     }
     n -= 1;
@@ -2102,7 +2102,7 @@ class Inbetweener {
   static out_elastic(n) {
     let p = 0.3,
         s = p / 4.0;
-    if (n == 1) {
+    if (n === 1) {
       return 1.0;
     }
     return ((Math.pow(2, -10 * n) * Math.sin((n - s) * 2 * Math.PI / p)) + 1.0);
@@ -2112,7 +2112,7 @@ class Inbetweener {
     let p = 0.3 * 1.5,
         s = p / 4.0,
         q = n * 2;
-    if (q == 2) {
+    if (q === 2) {
       return 1.0;
     }
     if (q < 1) {
@@ -2239,7 +2239,7 @@ class Inbetweener {
         this.attributes.set(a, {start: start, end: end});
       }
       else if (Array.isArray(start) && Array.isArray(end)) {
-        if (start.length != end.length) {
+        if (start.length !== end.length) {
           continue;
         }
         if (start.some(e => (typeof e !== 'number'))) {
@@ -2314,7 +2314,7 @@ function animate() {
   if (animation instanceof Inbetweener) {
     if (!animation.done) {
       // Newly scheduled animations will overwrite old ones
-      Inbetweener.queue = Inbetweener.queue.filter(a => (a.puppet != animation.puppet));
+      Inbetweener.queue = Inbetweener.queue.filter(a => (a.puppet !== animation.puppet));
       Inbetweener.queue.push(animation);
     }
     return animation;
