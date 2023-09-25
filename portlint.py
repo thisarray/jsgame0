@@ -12,7 +12,9 @@ TRICKY_CASES = ['self.', '.image',
                 # These are only bad for Actor instances
                 '.x', '.y',
                 # Legacy loader calls
-                '.LOAD(', '.set_mode(', '.playButton(']
+                '.LOAD(', '.set_mode(', '.playButton(',
+                # Equality or inequality that are not strict
+                ' == ', ' != ']
 """List of string Python elements that should not be in the JavaScript."""
 
 class _PortParser(html.parser.HTMLParser):
@@ -54,6 +56,10 @@ class _PortParser(html.parser.HTMLParser):
             # Check the JavaScript port
             for case in TRICKY_CASES:
                 if case in data:
+                    if (('=' in case) and
+                        (case not in data.replace(case + 'null', ''))):
+                        # Ignore comparisons to null that are not strict
+                        continue
                     self.errors.append(
                         '"{}" found in JavaScript!'.format(case))
             in_comment = False
@@ -87,7 +93,10 @@ class _UnitTest(unittest.TestCase):
         for ending in LINE_ENDINGS:
             self.assertEqual(ending, ending.strip())
         for case in TRICKY_CASES:
-            self.assertIn('.', case)
+            if '=' in case:
+                self.assertTrue(case.endswith('= '))
+            else:
+                self.assertIn('.', case)
 
     def test_PortParser(self):
         """Test the HTML parser."""
@@ -95,7 +104,27 @@ class _UnitTest(unittest.TestCase):
         for value in [
             '', 'foobar', 'f00', '8ar', '<html></html>',
             '<html><head></head></html>',
-            '<html><head></head><body></body></html>']:
+            '<html><head></head><body></body></html>',
+            '''<html>
+<head>
+</head>
+<body>
+<script>
+if (this == null) {
+}
+</script>
+</body>
+</html>''',
+            '''<html>
+<head>
+</head>
+<body>
+<script>
+if (this != null) {
+}
+</script>
+</body>
+</html>''']:
             parser.feed(value)
             self.assertEqual(parser.get_errors(), [])
 
@@ -207,7 +236,51 @@ window.addEventListener('load', (event) => {
 });
 </script>
 </body>
-</html>''', '".playButton(" found in JavaScript!')]:
+</html>''', '".playButton(" found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+if (this == 'foobar') {
+}
+</script>
+</body>
+</html>''', '" == " found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+if (this != 'foobar') {
+}
+</script>
+</body>
+</html>''', '" != " found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+if (this != null) {
+}
+if (this == 'foobar') {
+}
+</script>
+</body>
+</html>''', '" == " found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+if (this != 'foobar') {
+}
+if (this == null) {
+}
+</script>
+</body>
+</html>''', '" != " found in JavaScript!')]:
             parser = _PortParser()
             parser.feed(value)
             self.assertEqual(parser.get_errors(), [expected])
