@@ -14,7 +14,9 @@ TRICKY_CASES = ['self.', '.image',
                 # Legacy loader calls
                 '.LOAD(', '.set_mode(', '.playButton(',
                 # Equality or inequality that are not strict
-                ' == ', ' != ']
+                ' == ', ' != ',
+                # Extra argument
+                '.toFixed(0)']
 """List of string Python elements that should not be in the JavaScript."""
 
 class _PortParser(html.parser.HTMLParser):
@@ -280,7 +282,17 @@ if (this == null) {
 }
 </script>
 </body>
-</html>''', '" != " found in JavaScript!')]:
+</html>''', '" != " found in JavaScript!'),
+            ('''<html>
+<head>
+</head>
+<body>
+<script>
+let foobar = 42;
+console.log(foobar.toFixed(0));
+</script>
+</body>
+</html>''', '".toFixed(0)" found in JavaScript!')]:
             parser = _PortParser()
             parser.feed(value)
             self.assertEqual(parser.get_errors(), [expected])
