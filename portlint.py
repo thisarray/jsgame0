@@ -4,7 +4,7 @@ import html.parser
 import unittest
 
 LINE_ENDINGS = ('*/', '{', '}', '[', ']', ';', ',', '||', '&&')
-"""Tuple of accepted line endings in JavaScript excluding whitespace."""
+"""Tuple of accepted string line endings in JavaScript excluding whitespace."""
 
 TRICKY_CASES = ['self.', '.image',
                 # This only makes Joystick support difficult
@@ -17,7 +17,48 @@ TRICKY_CASES = ['self.', '.image',
                 ' == ', ' != ',
                 # Extra argument
                 '.toFixed(0)']
-"""List of string Python elements that should not be in the JavaScript."""
+"""List of string elements that should not be in the JavaScript."""
+
+def check_javascript(code):
+    """Return a list of errors in the Javascript in code."""
+    errors = []
+
+    for case in TRICKY_CASES:
+        if case in code:
+            if (('=' in case) and
+                (case not in code.replace(case + 'null', ''))):
+                # Ignore comparisons to null that are not strict
+                continue
+            errors.append('"{}" found in JavaScript!'.format(case))
+
+    # Check line by line
+    in_comment = False
+    for line in code.splitlines():
+        # This block comment check only catches when they are on own lines
+        if '/*' in line:
+            # Start of a block comment
+            in_comment = True
+        if '*/' in line:
+            # End of a block comment
+            in_comment = False
+        if in_comment:
+            continue
+        index = line.find('//')
+        if index >= 0:
+            # Remove the inline comment
+            line = line[:index].rstrip()
+        # Check the endings of lines that are not comments
+        cleaned = line.rstrip()
+        if len(cleaned) != len(line):
+            errors.append('''Trailing whitespace in line:
+{}'''.format(cleaned))
+        if len(cleaned) > 0:
+            if not cleaned.endswith(LINE_ENDINGS):
+                errors.append('''Line does not end correctly:
+{}'''.format(cleaned))
+
+    return errors
+
 
 class _PortParser(html.parser.HTMLParser):
 
@@ -53,40 +94,10 @@ class _PortParser(html.parser.HTMLParser):
             self.title = data
         elif self.current_tag == 'h1':
             if data != self.title:
-                self.errors.append('h1 tag does not match title!')
+                self.errors.append('h1 tag does not match title tag!')
         elif self.current_tag == 'script':
             # Check the JavaScript port
-            for case in TRICKY_CASES:
-                if case in data:
-                    if (('=' in case) and
-                        (case not in data.replace(case + 'null', ''))):
-                        # Ignore comparisons to null that are not strict
-                        continue
-                    self.errors.append(
-                        '"{}" found in JavaScript!'.format(case))
-            in_comment = False
-            for line in data.splitlines():
-                if '/*' in line:
-                    # Start of a block comment
-                    in_comment = True
-                if '*/' in line:
-                    # End of a block comment
-                    in_comment = False
-                if in_comment:
-                    continue
-                index = line.find('//')
-                if index >= 0:
-                    # Remove the inline comment
-                    line = line[0:index].rstrip()
-                # Check the endings of lines that are not comments
-                cleaned = line.rstrip()
-                if len(cleaned) != len(line):
-                    self.errors.append('''Trailing whitespace in line:
-{}'''.format(cleaned))
-                if len(cleaned) > 0:
-                    if not cleaned.endswith(LINE_ENDINGS):
-                        self.errors.append('''Line does not end correctly:
-{}'''.format(cleaned))
+            self.errors.extend(check_javascript(data))
 
 
 class _UnitTest(unittest.TestCase):
@@ -138,7 +149,7 @@ if (this != null) {
 <body>
 <h1>Baz</h1>
 </body>
-</html>''', 'h1 tag does not match title!'),
+</html>''', 'h1 tag does not match title tag!'),
             ('''<html>
 <head>
 </head>
@@ -293,6 +304,12 @@ console.log(foobar.toFixed(0));
 </script>
 </body>
 </html>''', '".toFixed(0)" found in JavaScript!')]:
+            start = value.find('<script>')
+            if start > 0:
+                end = value.find('</script>')
+                self.assertEqual(check_javascript(value[start+8:end]),
+                                 [expected])
+
             parser = _PortParser()
             parser.feed(value)
             self.assertEqual(parser.get_errors(), [expected])
@@ -342,7 +359,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'path', nargs='?', default='',
-        help='path to the JavaScript port HTML webpage or directory')
+        help='path to the JavaScript, port HTML webpage, or directory')
     args = parser.parse_args()
 
     paths = []
@@ -358,9 +375,12 @@ if __name__ == '__main__':
         for path in paths:
             with open(path, 'r', encoding='utf-8') as f:
                 source = f.read()
-            port_parser = _PortParser()
-            port_parser.feed(source)
-            errors = port_parser.get_errors()
+            if path.endswith('.js'):
+                errors = check_javascript(source)
+            else:
+                port_parser = _PortParser()
+                port_parser.feed(source)
+                errors = port_parser.get_errors()
             if len(errors) > 0:
                 if len(paths) > 1:
                     print('==> {} <=='.format(path))
