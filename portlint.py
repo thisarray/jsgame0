@@ -368,7 +368,7 @@ if __name__ == '__main__':
     elif os.path.isdir(args.path):
         filenames = os.listdir(args.path)
         for filename in filenames:
-            if filename.endswith('.html'):
+            if filename.endswith(('.html', '.js')):
                 paths.append(os.path.join(args.path, filename))
 
     if len(paths) > 0:
