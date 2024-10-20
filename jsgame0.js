@@ -1780,7 +1780,13 @@ class Actor {
     return [this.posx, this.posy];
   }
   set pos(pos) {
-    let [x=0, y=0] = pos;
+    let x, y;
+    if (Array.isArray(pos)) {
+      [x=0, y=0] = pos;
+    }
+    else {
+      ({x=0, y=0} = pos);
+    }
     this.posx = x;
     this.posy = y;
   }
