@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test the Vecta3D class</title>
+  <script src="../helper.js"></script>
+  <script src="test.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+  </style>
+</head>
+
+<body>
+
+<h1>Test the Vecta3D class</h1>
+
+<script>
+const zeroVec = new Vecta3D();
+const e1 = new Vecta3D(1, 0, 0);
+const e2 = new Vecta3D(0, 1, 0);
+const e3 = new Vecta3D(0, 0, 1);
+const l1 = [1.2, 3.4, 9.6];
+const t1 = {x: 1.2, y: 3.4, z: 9.6};
+const v1 = new Vecta3D(1.2, 3.4, 9.6);
+const l2 = [5.6, 7.8, 2.1];
+const t2 = {x: 5.6, y: 7.8, z: 2.1};
+const v2 = new Vecta3D(l2);
+const s1 = 5.6;
+const s2 = 7.8;
+
+function test_constructionDefault() {
+  let v = new Vecta3D();
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 0);
+  test.assertEqual(v.z, 0);
+}
+
+function test_constructionScalar() {
+  let v = new Vecta3D(1);
+  test.assertEqual(v.x, 1);
+  test.assertEqual(v.y, 1);
+  test.assertEqual(v.z, 1);
+}
+
+function test_constructionXYZ() {
+  let v = new Vecta3D(1.2, 3.4);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, 0);
+  v = new Vecta3D(1.2, 3.4, 9.6);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, 9.6);
+  v = new Vecta3D(1.2, 3.4, 9.6, 7.8);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, 9.6);
+}
+
+function test_constructionArray() {
+  let v = new Vecta3D([1.2]);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 0);
+  test.assertEqual(v.z, 0);
+  v = new Vecta3D([1.2, 3.4]);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, 0);
+  v = new Vecta3D([1.2, 3.4, -9.6]);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, -9.6);
+  v = new Vecta3D([1.2, 3.4, -9.6, 7.8]);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, -9.6);
+}
+
+function test_constructionObject() {
+  let v = new Vecta3D({a: 42});
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 0);
+  test.assertEqual(v.z, 0);
+  v = new Vecta3D({x: 1.2});
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 0);
+  test.assertEqual(v.z, 0);
+  v = new Vecta3D({y: 3.4});
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, 0);
+  v = new Vecta3D({z: -9.6});
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 0);
+  test.assertEqual(v.z, -9.6);
+  v = new Vecta3D({x: 1.2, y: 3.4});
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, 0);
+  v = new Vecta3D({x: 1.2, z: -9.6});
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 0);
+  test.assertEqual(v.z, -9.6);
+  v = new Vecta3D({y: 3.4, z: -9.6});
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, -9.6);
+  v = new Vecta3D({x: 1.2, y: 3.4, z: -9.6});
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, -9.6);
+  v = new Vecta3D({a: 42, x: 1.2, y: 3.4, z: -9.6});
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, -9.6);
+}
+
+function test_constructionVecta() {
+  let v = new Vecta3D(new Vecta(1.2, 3.4));
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, 0);
+}
+
+function test_constructionVecta3D() {
+  let v = new Vecta3D(new Vecta3D(1.2, 3.4, -9.6));
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  test.assertEqual(v.z, -9.6);
+}
+
+function test_add() {
+  let v3 = v1.add(v2);
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x + v2.x);
+  test.assertEqual(v3.y, v1.y + v2.y);
+  test.assertEqual(v3.z, v1.z + v2.z);
+  v3 = v2.add(v1);
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x + v2.x);
+  test.assertEqual(v3.y, v1.y + v2.y);
+  test.assertEqual(v3.z, v1.z + v2.z);
+  v3 = v1.add(t2);
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x + v2.x);
+  test.assertEqual(v3.y, v1.y + v2.y);
+  test.assertEqual(v3.z, v1.z + v2.z);
+  v3 = v1.add(l2);
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x + v2.x);
+  test.assertEqual(v3.y, v1.y + v2.y);
+  test.assertEqual(v3.z, v1.z + v2.z);
+  test.assertRaises(Error, v1.add.bind(v1));
+}
+
+function test_subtract() {
+  let v3 = v1.subtract(v2);
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x - v2.x);
+  test.assertEqual(v3.y, v1.y - v2.y);
+  test.assertEqual(v3.z, v1.z - v2.z);
+  v3 = v1.add(v2.multiply(-1));
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x - v2.x);
+  test.assertEqual(v3.y, v1.y - v2.y);
+  test.assertEqual(v3.z, v1.z - v2.z);
+  v3 = v1.subtract(t2);
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x - v2.x);
+  test.assertEqual(v3.y, v1.y - v2.y);
+  test.assertEqual(v3.z, v1.z - v2.z);
+  v3 = v1.subtract(l2);
+  test.assertTrue(v3 instanceof Vecta3D);
+  test.assertEqual(v3.x, v1.x - v2.x);
+  test.assertEqual(v3.y, v1.y - v2.y);
+  test.assertEqual(v3.z, v1.z - v2.z);
+  test.assertRaises(Error, v1.subtract.bind(v1));
+}
+
+function test_scalarMultiply() {
+  let v = v1.multiply(s1);
+  test.assertTrue(v instanceof Vecta3D);
+  test.assertEqual(v.x, v1.x * s1);
+  test.assertEqual(v.y, v1.y * s1);
+  test.assertEqual(v.z, v1.z * s1);
+  v = v1.multiply(s2);
+  test.assertTrue(v instanceof Vecta3D);
+  test.assertEqual(v.x, v1.x * s2);
+  test.assertEqual(v.y, v1.y * s2);
+  test.assertEqual(v.z, v1.z * s2);
+  test.assertRaises(Error, v1.multiply.bind(v1));
+  test.assertRaises(Error, v1.multiply.bind(v1), 'foobar');
+}
+
+function test_scalarDivide() {
+  let v = v1.divide(s1);
+  test.assertTrue(v instanceof Vecta3D);
+  test.assertEqual(v.x, v1.x / s1);
+  test.assertEqual(v.y, v1.y / s1);
+  test.assertEqual(v.z, v1.z / s1);
+  v = v1.divide(s2);
+  test.assertTrue(v instanceof Vecta3D);
+  test.assertEqual(v.x, v1.x / s2);
+  test.assertEqual(v.y, v1.y / s2);
+  test.assertEqual(v.z, v1.z / s2);
+  test.assertRaises(TypeError, v1.divide.bind(v1), 'foobar');
+}
+
+function test_isEqual() {
+  let intVec = new Vecta3D(3, -2, 13),
+      fltVec = new Vecta3D(3.0, -2.0, 13.0);
+  test.assertTrue(intVec.isEqual(intVec));
+  test.assertTrue(fltVec.isEqual(fltVec));
+
+  test.assertTrue(intVec.isEqual(fltVec));
+  test.assertTrue(fltVec.isEqual(intVec));
+  test.assertFalse(intVec.isEqual(zeroVec));
+  test.assertFalse(fltVec.isEqual(zeroVec));
+  test.assertTrue(intVec.isEqual([3, -2, 13]));
+  test.assertTrue(intVec.isEqual([3.0, -2.0, 13.0]));
+  test.assertFalse(intVec.isEqual([0, 0, 0]));
+  test.assertTrue(intVec.isEqual({x: 3, y: -2, z: 13}));
+  test.assertTrue(intVec.isEqual({x: 3.0, y: -2.0, z: 13.0}));
+  test.assertFalse(intVec.isEqual({x: 0, y: 0, z: 0}));
+  test.assertTrue(fltVec.isEqual([3, -2, 13]));
+  test.assertTrue(fltVec.isEqual([3.0, -2.0, 13.0]));
+  test.assertFalse(fltVec.isEqual([0, 0, 0]));
+  test.assertTrue(fltVec.isEqual({x: 3, y: -2, z: 13}));
+  test.assertTrue(fltVec.isEqual({x: 3.0, y: -2.0, z: 13.0}));
+  test.assertFalse(fltVec.isEqual({x: 0, y: 0, z: 0}));
+
+  test.assertRaises(Error, intVec.isEqual.bind(intVec));
+}
+
+function test_toString() {
+  let v = new Vecta3D(1.2, 3.4, 5.6);
+  test.assertEqual(v.toString(), "[1.2, 3.4, 5.6]");
+}
+
+function test_rotation() {
+  let v = new Vecta3D(1, 0, 0),
+      axis = new Vecta3D(0, 0, 1),
+      d, r, expectedX, expectedY;
+  for (let angle = 1; angle < 90; angle++) {
+    expectedX = Math.cos(angle * Math.PI / 180);
+    expectedY = Math.sin(angle * Math.PI / 180);
+    d = v.rotate(angle, axis);
+    test.assertTrue(Vecta.isAlmostEqual(d.x, expectedX));
+    test.assertTrue(Vecta.isAlmostEqual(d.y, expectedY));
+    r = v.rotate_rad(angle * Math.PI / 180, axis);
+    test.assertTrue(Vecta.isAlmostEqual(r.x, expectedX));
+    test.assertTrue(Vecta.isAlmostEqual(r.y, expectedY));
+  }
+}
+
+function test_rotate() {
+  let v1 = new Vecta3D(1, 0, 0),
+      axis = new Vecta3D(0, 1, 0),
+      v2 = v1.rotate(90, axis),
+      v3 = v1.rotate(90 + 360, axis);
+  test.assertEqual(v1.x, 1);
+  test.assertEqual(v1.y, 0);
+  test.assertEqual(v1.z, 0);
+  test.assertEqual(v2.x, 0);
+  test.assertEqual(v2.y, 0);
+  test.assertEqual(v2.z, -1);
+  test.assertEqual(v3.x, v2.x);
+  test.assertEqual(v3.y, v2.y);
+  test.assertEqual(v3.z, v2.z);
+  v1 = new Vecta3D(-1, -1, -1);
+  v2 = v1.rotate(-90, axis);
+  test.assertEqual(v2.x, 1);
+  test.assertEqual(v2.y, -1);
+  test.assertEqual(v2.z, -1);
+  v2 = v1.rotate(360, axis);
+  test.assertEqual(v1.x, v2.x);
+  test.assertEqual(v1.y, v2.y);
+  test.assertEqual(v1.z, v2.z);
+  v2 = v1.rotate(0, axis);
+  test.assertEqual(v1.x, v2.x);
+  test.assertEqual(v1.y, v2.y);
+  test.assertEqual(v1.z, v2.z);
+  // issue 214
+  v1 = (new Vecta3D(0, 1, 0)).rotate(359.99999999, new Vecta3D(0, 0, 1));
+  test.assertTrue(v1.isEqual([0, 1, 0]));
+}
+
+function test_rotate_rad() {
+  let axis = new Vecta3D(0, 0, 1);
+  for (let [initialVec, radians] of [
+    [[1, 0, 0], Math.PI],
+    [[1, 0, 0], Math.PI / 2],
+    [[1, 0, 0], -Math.PI / 2],
+    [[1, 0, 0], Math.PI / 4]]) {
+    let v = (new Vecta3D(initialVec)).rotate_rad(radians, axis);
+    test.assertTrue(v.isEqual([Math.cos(radians), Math.sin(radians), 0]));
+  }
+}
+
+function test_rotate_ip() {
+  let v = new Vecta3D(1, 0, 0),
+      axis = new Vecta3D(0, 1, 0);
+  test.assertEqual(v.rotate_ip(90, axis), undefined);
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 0);
+  test.assertEqual(v.z, -1);
+  v = new Vecta3D(-1, -1, 1);
+  v.rotate_ip(-90, axis);
+  test.assertEqual(v.x, -1);
+  test.assertEqual(v.y, -1);
+  test.assertEqual(v.z, -1);
+}
+
+function test_rotate_ip_rad() {
+  let axis = new Vecta3D(0, 0, 1);
+  for (let [initialVec, radians] of [
+    [[1, 0, 0], Math.PI],
+    [[1, 0, 0], Math.PI / 2],
+    [[1, 0, 0], -Math.PI / 2],
+    [[1, 0, 0], Math.PI / 4]]) {
+    let v = new Vecta3D(initialVec);
+    v.rotate_ip_rad(radians, axis);
+    test.assertTrue(v.isEqual([Math.cos(radians), Math.sin(radians), 0]));
+  }
+}
+
+function test_normalize() {
+  let v = v1.normalize();
+  // length is 1
+  test.assertTrue(Vecta.isAlmostEqual((v.x * v.x) + (v.y * v.y) + (v.z * v.z), 1));
+  // v1 is unchanged
+  test.assertEqual(v1.x, l1[0]);
+  test.assertEqual(v1.y, l1[1]);
+  test.assertEqual(v1.z, l1[2]);
+  // v is parallel to v1 (tested via cross product)
+  test.assertEqual(Math.pow((v1.y * v.z) - (v1.z * v.y), 2) +
+                   Math.pow((v1.z * v.x) - (v1.x * v.z), 2) +
+                   Math.pow((v1.x * v.y) - (v1.y * v.x), 2), 0);
+  test.assertRaises(RangeError, zeroVec.normalize.bind(zeroVec));
+}
+
+function test_normalize_ip() {
+  let v = new Vecta3D(v1);
+  // v has length != 1 before normalizing
+  test.assertTrue(((v.x * v.x) + (v.y * v.y) + (v.z * v.z)) !== 1);
+  // inplace operations should return None
+  test.assertEqual(v.normalize_ip(), undefined);
+  // length is 1
+  test.assertTrue(Vecta.isAlmostEqual((v.x * v.x) + (v.y * v.y) + (v.z * v.z), 1));
+  // v is parallel to v1 (tested via cross product)
+  test.assertEqual(Math.pow((v1.y * v.z) - (v1.z * v.y), 2) +
+                   Math.pow((v1.z * v.x) - (v1.x * v.z), 2) +
+                   Math.pow((v1.x * v.y) - (v1.y * v.x), 2), 0);
+  test.assertRaises(RangeError, zeroVec.normalize_ip.bind(zeroVec));
+}
+
+function test_is_normalized() {
+  test.assertFalse(v1.is_normalized());
+  let v = v1.normalize();
+  test.assertTrue(v.is_normalized());
+  test.assertTrue(e2.is_normalized());
+  test.assertFalse(zeroVec.is_normalized());
+}
+
+function test_cross() {
+  function cross(a, b) {
+    return new Vecta3D(
+      (a.y * b.z) - (a.z * b.y),
+      (a.z * b.x) - (a.x * b.z),
+      (a.x * b.y) - (a.y * b.x));
+  }
+  let expected = cross(v1, v2);
+  test.assertEqual(v1.cross(v2), expected);
+  test.assertEqual(v1.cross(l2), expected);
+  test.assertEqual(v1.cross(t2), expected);
+  test.assertTrue(v1.cross(v2).isEqual(v2.multiply(-1).cross(v1)));
+  test.assertTrue(v1.cross(v1).isEqual(zeroVec));
+  test.assertRaises(Error, v1.cross.bind(v1));
+}
+
+function test_dot() {
+  let expected = (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
+  test.assertEqual(v1.dot(v2), expected);
+  test.assertEqual(v1.dot(l2), expected);
+  test.assertEqual(v1.dot(t2), expected);
+  test.assertEqual(v1.dot(v2), v2.dot(v1));
+  test.assertEqual(v1.dot(v2), v1.multiply(v2));
+  test.assertEqual(v1.multiply(v2), expected);
+  test.assertEqual(v2.multiply(v1), expected);
+  test.assertRaises(Error, v1.dot.bind(v1));
+}
+
+function test_angle_to() {
+  test.assertEqual((new Vecta3D(1, 1, 0)).angle_to(new Vecta3D(-1, 1, 0)), 90);
+  test.assertEqual((new Vecta3D(1, 0, 0)).angle_to(new Vecta3D(0, 0, -1)), 90);
+  test.assertEqual((new Vecta3D(1, 0, 0)).angle_to(new Vecta3D(-1, 0, 1)), 135);
+  test.assertEqual(Math.abs((new Vecta3D(1, 0, 1)).angle_to(new Vecta3D(-1, 0, -1))), 180);
+  // if we rotate v1 by the angle_to v2 around their cross product
+  // we should look in the same direction
+  let n1 = v1.rotate(v1.angle_to(v2), v1.cross(v2)).normalize(),
+      n2 = v2.normalize();
+  test.assertTrue(n1.isEqual(n2));
+
+  test.assertRaises(Error, v1.angle_to.bind(v1));
+}
+
+function test_scale_to_length() {
+  let v = new Vecta3D(1, 1, 1);
+  v.scale_to_length(2.5);
+  test.assertEqual(v, (new Vecta3D(2.5, 2.5, 2.5)).divide(Math.sqrt(3)));
+  test.assertRaises(RangeError, zeroVec.scale_to_length.bind(zeroVec), 1);
+  test.assertEqual(v.scale_to_length(0), undefined);
+  test.assertEqual(v, zeroVec);
+}
+
+function test_length() {
+  test.assertEqual((new Vecta3D(3, 4, 5)).length(), Math.hypot(3, 4, 5));
+  test.assertEqual((new Vecta3D(-3, 4, 5)).length(), Math.hypot(3, 4, 5));
+  test.assertEqual(zeroVec.length(), 0);
+}
+
+function test_length_squared() {
+  test.assertEqual((new Vecta3D(3, 4, 5)).length_squared(), (3 * 3) + (4 * 4) + (5 * 5));
+  test.assertEqual((new Vecta3D(-3, 4, 5)).length_squared(), (3 * 3) + (4 * 4) + (5 * 5));
+  test.assertEqual(zeroVec.length_squared(), 0);
+}
+
+function test_reflect() {
+  let v = new Vecta3D(1, -1, 1),
+      n = new Vecta3D(0, 1, 0);
+  test.assertEqual(v.reflect(n), new Vecta3D(1, 1, 1));
+  test.assertEqual(v.reflect(new Vecta3D(0, 3, 0)), v.reflect(n));
+  test.assertTrue(v.reflect(v.multiply(-1)).isEqual(new Vecta3D(-1, 1, -1)));
+  test.assertRaises(RangeError, v.reflect.bind(v), zeroVec);
+  test.assertRaises(Error, v.reflect.bind(v));
+}
+
+function test_reflect_ip() {
+  let v1 = new Vecta3D(1, -1, 1),
+      v2 = new Vecta3D(v1),
+      n = new Vecta3D(0, 1, 0);
+  test.assertEqual(v2.reflect_ip(n), undefined);
+  test.assertEqual(v2, new Vecta3D(1, 1, 1));
+  v2 = new Vecta3D(v1);
+  v2.reflect_ip(new Vecta3D(0, 3, 0));
+  test.assertEqual(v2, v1.reflect(n));
+  v2 = new Vecta3D(v1);
+  v2.reflect_ip(new Vecta3D(-1, 1, -1));
+  test.assertTrue(v2.isEqual([-1, 1, -1]));
+  test.assertRaises(RangeError, v2.reflect_ip.bind(v2), zeroVec);
+  test.assertRaises(Error, v2.reflect_ip.bind(v2));
+}
+
+function test_distance_to() {
+  let diff = v1.subtract(v2);
+  test.assertEqual(e1.distance_to(e2), Math.SQRT2);
+  test.assertEqual(e1.distance_to([0, 1, 0]), Math.SQRT2);
+  test.assertEqual(e1.distance_to({x: 0, y: 1, z: 0}), Math.SQRT2);
+  test.assertEqual(v1.distance_to(v2), Math.hypot(diff.x, diff.y, diff.z));
+  test.assertEqual(v1.distance_to(t2), Math.hypot(diff.x, diff.y, diff.z));
+  test.assertEqual(v1.distance_to(l2), Math.hypot(diff.x, diff.y, diff.z));
+  test.assertEqual(v1.distance_to(v1), 0);
+  test.assertEqual(v1.distance_to(t1), 0);
+  test.assertEqual(v1.distance_to(l1), 0);
+  test.assertEqual(v1.distance_to(v2), v2.distance_to(v1));
+  test.assertEqual(v1.distance_to(t2), v2.distance_to(t1));
+  test.assertEqual(v1.distance_to(l2), v2.distance_to(l1));
+  test.assertRaises(Error, v1.distance_to.bind(v1));
+}
+
+function test_distance_squared_to() {
+  let diff = v1.subtract(v2);
+  test.assertEqual(e1.distance_squared_to(e2), 2);
+  test.assertEqual(e1.distance_squared_to([0, 1, 0]), 2);
+  test.assertEqual(e1.distance_squared_to({x: 0, y: 1, z: 0}), 2);
+  test.assertEqual(v1.distance_squared_to(v2), (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z));
+  test.assertEqual(v1.distance_squared_to(t2), (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z));
+  test.assertEqual(v1.distance_squared_to(l2), (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z));
+  test.assertEqual(v1.distance_squared_to(v1), 0);
+  test.assertEqual(v1.distance_squared_to(t1), 0);
+  test.assertEqual(v1.distance_squared_to(l1), 0);
+  test.assertEqual(v1.distance_squared_to(v2), v2.distance_squared_to(v1));
+  test.assertEqual(v1.distance_squared_to(t2), v2.distance_squared_to(t1));
+  test.assertEqual(v1.distance_squared_to(l2), v2.distance_squared_to(l1));
+  test.assertRaises(Error, v1.distance_squared_to.bind(v1));
+}
+
+test.main();
+</script>
+</body>
+
+</html>
