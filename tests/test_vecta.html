@@ -29,6 +29,8 @@ const v1 = new Vecta(1.2, 3.4);
 const l2 = [5.6, 7.8];
 const t2 = {x: 5.6, y: 7.8};
 const v2 = new Vecta(l2);
+const s1 = 5.6;
+const s2 = 7.8;
 
 function test_isAlmostEqual() {
   test.assertFalse(Vecta.isAlmostEqual('foobar', 42));
@@ -61,16 +63,37 @@ function test_constructionXY() {
   let v = new Vecta(1.2, 3.4);
   test.assertEqual(v.x, 1.2);
   test.assertEqual(v.y, 3.4);
+  v = new Vecta(1.2, 3.4, 5.6);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
 }
 
 function test_constructionArray() {
-  let v = new Vecta([1.2, 3.4]);
+  let v = new Vecta([1.2]);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 0);
+  v = new Vecta([1.2, 3.4]);
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  v = new Vecta([1.2, 3.4, 5.6]);
   test.assertEqual(v.x, 1.2);
   test.assertEqual(v.y, 3.4);
 }
 
 function test_constructionObject() {
-  let v = new Vecta({x: 1.2, y: 3.4});
+  let v = new Vecta({a: 42});
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 0);
+  v = new Vecta({x: 1.2});
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 0);
+  v = new Vecta({y: 3.4});
+  test.assertEqual(v.x, 0);
+  test.assertEqual(v.y, 3.4);
+  v = new Vecta({x: 1.2, y: 3.4});
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+  v = new Vecta({a: 42, x: 1.2, y: 3.4});
   test.assertEqual(v.x, 1.2);
   test.assertEqual(v.y, 3.4);
 }
@@ -93,11 +116,11 @@ function test_add() {
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x + v2.x);
   test.assertEqual(v3.y, v1.y + v2.y);
-  v3 = v1.add(l2);
+  v3 = v1.add(t2);
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x + v2.x);
   test.assertEqual(v3.y, v1.y + v2.y);
-  v3 = v1.add(t2);
+  v3 = v1.add(l2);
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x + v2.x);
   test.assertEqual(v3.y, v1.y + v2.y);
@@ -113,11 +136,11 @@ function test_subtract() {
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x - v2.x);
   test.assertEqual(v3.y, v1.y - v2.y);
-  v3 = v1.subtract(l2);
+  v3 = v1.subtract(t2);
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x - v2.x);
   test.assertEqual(v3.y, v1.y - v2.y);
-  v3 = v1.subtract(t2);
+  v3 = v1.subtract(l2);
   test.assertTrue(v3 instanceof Vecta);
   test.assertEqual(v3.x, v1.x - v2.x);
   test.assertEqual(v3.y, v1.y - v2.y);
@@ -125,27 +148,27 @@ function test_subtract() {
 }
 
 function test_scalarMultiply() {
-  let v = v1.multiply(5.6);
+  let v = v1.multiply(s1);
   test.assertTrue(v instanceof Vecta);
-  test.assertEqual(v.x, v1.x * 5.6);
-  test.assertEqual(v.y, v1.y * 5.6);
-  v = v1.multiply(7.8);
+  test.assertEqual(v.x, v1.x * s1);
+  test.assertEqual(v.y, v1.y * s1);
+  v = v1.multiply(s2);
   test.assertTrue(v instanceof Vecta);
-  test.assertEqual(v.x, v1.x * 7.8);
-  test.assertEqual(v.y, v1.y * 7.8);
+  test.assertEqual(v.x, v1.x * s2);
+  test.assertEqual(v.y, v1.y * s2);
   test.assertRaises(Error, v1.multiply.bind(v1));
   test.assertRaises(Error, v1.multiply.bind(v1), 'foobar');
 }
 
 function test_scalarDivide() {
-  let v = v1.divide(5.6);
+  let v = v1.divide(s1);
   test.assertTrue(v instanceof Vecta);
-  test.assertEqual(v.x, v1.x / 5.6);
-  test.assertEqual(v.y, v1.y / 5.6);
-  v = v1.divide(7.8);
+  test.assertEqual(v.x, v1.x / s1);
+  test.assertEqual(v.y, v1.y / s1);
+  v = v1.divide(s2);
   test.assertTrue(v instanceof Vecta);
-  test.assertEqual(v.x, v1.x / 7.8);
-  test.assertEqual(v.y, v1.y / 7.8);
+  test.assertEqual(v.x, v1.x / s2);
+  test.assertEqual(v.y, v1.y / s2);
   test.assertRaises(TypeError, v1.divide.bind(v1), 'foobar');
 }
 
@@ -156,6 +179,7 @@ function test_isEqual() {
   test.assertTrue(fltVec.isEqual(fltVec));
 
   test.assertTrue(intVec.isEqual(fltVec));
+  test.assertTrue(fltVec.isEqual(intVec));
   test.assertFalse(intVec.isEqual(zeroVec));
   test.assertFalse(fltVec.isEqual(zeroVec));
   test.assertTrue(intVec.isEqual([3, -2]));
@@ -323,6 +347,7 @@ function test_scale_to_length() {
   let v = new Vecta(1, 1);
   v.scale_to_length(2.5);
   test.assertEqual(v, new Vecta(2.5 / Math.SQRT2, 2.5 / Math.SQRT2));
+  test.assertEqual(v, (new Vecta(2.5, 2.5)).divide(Math.SQRT2));
   test.assertRaises(RangeError, zeroVec.scale_to_length.bind(zeroVec), 1);
   test.assertEqual(v.scale_to_length(0), undefined);
   test.assertEqual(v, zeroVec);
@@ -368,20 +393,38 @@ function test_reflect_ip() {
 }
 
 function test_distance_to() {
-  let diff = v1.subtract(v2);
+  let diff = v1.subtract(v2),
+      expected = Math.hypot(diff.x, diff.y);
   test.assertEqual(e1.distance_to(e2), Math.SQRT2);
-  test.assertEqual(v1.distance_to(v2), Math.sqrt((diff.x * diff.x) + (diff.y * diff.y)));
+  test.assertEqual(e1.distance_to([0, 1]), Math.SQRT2);
+  test.assertEqual(e1.distance_to({x: 0, y: 1}), Math.SQRT2);
+  test.assertEqual(v1.distance_to(v2), expected);
+  test.assertEqual(v1.distance_to(t2), expected);
+  test.assertEqual(v1.distance_to(l2), expected);
   test.assertEqual(v1.distance_to(v1), 0);
+  test.assertEqual(v1.distance_to(t1), 0);
+  test.assertEqual(v1.distance_to(l1), 0);
+  test.assertEqual(v1.distance_to(t2), v2.distance_to(t1));
+  test.assertEqual(v1.distance_to(l2), v2.distance_to(l1));
   test.assertEqual(v1.distance_to(v2), v2.distance_to(v1));
   test.assertRaises(Error, v1.distance_to.bind(v1));
 }
 
 function test_distance_squared_to() {
-  let diff = v1.subtract(v2);
+  let diff = v1.subtract(v2),
+      expected = (diff.x * diff.x) + (diff.y * diff.y);
   test.assertEqual(e1.distance_squared_to(e2), 2);
-  test.assertEqual(v1.distance_squared_to(v2), (diff.x * diff.x) + (diff.y * diff.y));
+  test.assertEqual(e1.distance_squared_to([0, 1]), 2);
+  test.assertEqual(e1.distance_squared_to({x: 0, y: 1}), 2);
+  test.assertEqual(v1.distance_squared_to(v2), expected);
+  test.assertEqual(v1.distance_squared_to(t2), expected);
+  test.assertEqual(v1.distance_squared_to(l2), expected);
   test.assertEqual(v1.distance_squared_to(v1), 0);
+  test.assertEqual(v1.distance_squared_to(t1), 0);
+  test.assertEqual(v1.distance_squared_to(l1), 0);
   test.assertEqual(v1.distance_squared_to(v2), v2.distance_squared_to(v1));
+  test.assertEqual(v1.distance_squared_to(t2), v2.distance_squared_to(t1));
+  test.assertEqual(v1.distance_squared_to(l2), v2.distance_squared_to(l1));
   test.assertRaises(Error, v1.distance_squared_to.bind(v1));
 }
 
