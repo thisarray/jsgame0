@@ -107,6 +107,12 @@ function test_constructionVecta() {
   test.assertEqual(v.y, 3.4);
 }
 
+function test_constructionVecta3D() {
+  let v = new Vecta(new Vecta3D(1.2, 3.4, -9.6));
+  test.assertEqual(v.x, 1.2);
+  test.assertEqual(v.y, 3.4);
+}
+
 function test_add() {
   let v3 = v1.add(v2);
   test.assertTrue(v3 instanceof Vecta);
