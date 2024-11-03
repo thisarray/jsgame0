@@ -3309,15 +3309,15 @@ class Joystick {
   constructor(index) {
     if (typeof index !== 'number') {
       throw new TypeError(
-        'index must be a Number in [0, Joystick.get_count()).');
+        'index must be a non-negative number in [0, Joystick.get_count()).');
     }
     if (index < 0) {
       throw new RangeError(
-        'index must be a Number in [0, Joystick.get_count()).');
+        'index must be a non-negative number in [0, Joystick.get_count()).');
     }
     if (Joystick._controllers.length <= index) {
       throw new RangeError(
-        'index must be a Number in [0, Joystick.get_count()).');
+        'index must be a non-negative number in [0, Joystick.get_count()).');
     }
 
     /*
@@ -3383,11 +3383,11 @@ class Joystick {
   get_axis(i, fallback = 0) {
     if (typeof i !== 'number') {
       throw new TypeError(
-        'i must be a non-negative Number less than the number of axes.');
+        'i must be a non-negative number less than the number of axes.');
     }
     if (i < 0) {
       throw new RangeError(
-        'i must be a non-negative Number less than the number of axes.');
+        'i must be a non-negative number less than the number of axes.');
     }
 
     let gamepad = this._getGamepad();
@@ -3416,11 +3416,11 @@ class Joystick {
   get_button(i, fallback = false) {
     if (typeof i !== 'number') {
       throw new TypeError(
-        'i must be a non-negative Number less than the number of buttons.');
+        'i must be a non-negative number less than the number of buttons.');
     }
     if (i < 0) {
       throw new RangeError(
-        'i must be a non-negative Number less than the number of buttons.');
+        'i must be a non-negative number less than the number of buttons.');
     }
 
     let gamepad = this._getGamepad();
