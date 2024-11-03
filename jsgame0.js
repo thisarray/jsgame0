@@ -715,10 +715,10 @@ const clock = (function () {
         throw new TypeError('callback must be a function.');
       }
       if (typeof delay !== 'number') {
-        throw new TypeError('delay must be a positive number.');
+        throw new TypeError('delay must be a positive number in seconds.');
       }
       if (delay <= 0) {
-        throw new RangeError('delay must be a positive number.');
+        throw new RangeError('delay must be a positive number in seconds.');
       }
       queue.push([callback, delay, 0]);
     },
@@ -739,10 +739,10 @@ const clock = (function () {
         throw new TypeError('callback must be a function.');
       }
       if (typeof interval !== 'number') {
-        throw new TypeError('interval must be a positive number.');
+        throw new TypeError('interval must be a positive number in seconds.');
       }
       if (interval <= 0) {
-        throw new RangeError('interval must be a positive number.');
+        throw new RangeError('interval must be a positive number in seconds.');
       }
       queue.push([callback, interval, interval]);
     },
@@ -754,7 +754,7 @@ const clock = (function () {
       if (typeof callback !== 'function') {
         throw new TypeError('callback must be a function.');
       }
-      queue = queue.filter(q => (q[0] !== callback));
+      queue = queue.filter((q) => (q[0] !== callback));
     },
 
     _clearQueue() {
@@ -991,7 +991,7 @@ const tone = (function () {
   const NOTE_MAP = new Map();
 
   /*
-   * Convert the hard-coded number of samples in Pygame Zero to durations.
+   * Convert the hard-coded number of samples in Pygame Zero to durations in seconds.
    *
    * These constants refer to the stages of the
    * Attack Decay Sustain Release (ADSR) envelope
@@ -1063,10 +1063,10 @@ const tone = (function () {
         throw new TypeError('note must be a string. Notes are A-G, are either normal, flat (b) or sharp (#) and of octave 0-8.');
       }
       if (typeof duration !== 'number') {
-        throw new TypeError('duration must be a positive number.');
+        throw new TypeError('duration must be a positive number in seconds.');
       }
       if (duration <= 0) {
-        throw new RangeError('duration must be a positive number.');
+        throw new RangeError('duration must be a positive number in seconds.');
       }
 
       populateNotes();
@@ -2209,10 +2209,10 @@ class Inbetweener {
       throw new TypeError('puppet must be an object.');
     }
     if (typeof duration !== 'number') {
-      throw new TypeError('duration must be a positive number.');
+      throw new TypeError('duration must be a positive number in seconds.');
     }
     if (duration <= 0) {
-      throw new RangeError('duration must be a positive number.');
+      throw new RangeError('duration must be a positive number in seconds.');
     }
     if (typeof attributes !== 'object') {
       throw new TypeError('attributes must be an object.');
@@ -2248,10 +2248,10 @@ class Inbetweener {
         if (start.length !== end.length) {
           continue;
         }
-        if (start.some(e => (typeof e !== 'number'))) {
+        if (start.some((e) => (typeof e !== 'number'))) {
           continue;
         }
-        if (end.some(e => (typeof e !== 'number'))) {
+        if (end.some((e) => (typeof e !== 'number'))) {
           continue;
         }
         this.attributes.set(a, {start: start, end: end});
@@ -2320,7 +2320,7 @@ function animate() {
   if (animation instanceof Inbetweener) {
     if (!animation.done) {
       // Newly scheduled animations will overwrite old ones
-      Inbetweener.queue = Inbetweener.queue.filter(a => (a.puppet !== animation.puppet));
+      Inbetweener.queue = Inbetweener.queue.filter((a) => (a.puppet !== animation.puppet));
       Inbetweener.queue.push(animation);
     }
     return animation;
@@ -2421,7 +2421,7 @@ const screen = (function () {
       /*
        * Set of string names of currently playing sounds.
        *
-       * Tracked here so Object.getOwnPropertyNames(sounds)
+       * Tracked here because Object.getOwnPropertyNames(sounds)
        * returns the names of all sounds.
        */
       playingSet = new Set(),
@@ -2458,11 +2458,11 @@ const screen = (function () {
         }
         playingSet.clear();
         music.stop();
-        if (typeof window.reset === 'function') {
-          window.reset();
-        }
         if (pauseButton != null) {
           pauseButton.textContent = 'Pause';
+        }
+        if (typeof window.reset === 'function') {
+          window.reset();
         }
         screen.go();
       });
@@ -2566,7 +2566,7 @@ const screen = (function () {
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
         if (Array.isArray(dashArray)) {
-          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          dashArray = dashArray.filter((v) => (typeof v === 'number'));
           if (dashArray.length > 0) {
             context.setLineDash(dashArray);
             if (typeof dashOffset === 'number') {
@@ -2616,7 +2616,7 @@ const screen = (function () {
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
         if (Array.isArray(dashArray)) {
-          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          dashArray = dashArray.filter((v) => (typeof v === 'number'));
           if (dashArray.length > 0) {
             context.setLineDash(dashArray);
             if (typeof dashOffset === 'number') {
@@ -2679,7 +2679,7 @@ const screen = (function () {
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
         if (Array.isArray(dashArray)) {
-          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          dashArray = dashArray.filter((v) => (typeof v === 'number'));
           if (dashArray.length > 0) {
             context.setLineDash(dashArray);
             if (typeof dashOffset === 'number') {
@@ -2689,9 +2689,10 @@ const screen = (function () {
         }
 
         context.beginPath();
-        let isFirst = true;
+        let isFirst = true,
+            x, y;
         for (let point of points) {
-          let [x=0, y=0] = point;
+          [x=0, y=0] = point;
           if (isFirst) {
             context.moveTo(x, y);
           }
@@ -2713,9 +2714,10 @@ const screen = (function () {
         context.fillStyle = parseColor(color);
 
         context.beginPath();
-        let isFirst = true;
+        let isFirst = true,
+            x, y;
         for (let point of points) {
-          let [x=0, y=0] = point;
+          [x=0, y=0] = point;
           if (isFirst) {
             context.moveTo(x, y);
           }
@@ -2738,7 +2740,7 @@ const screen = (function () {
         context.lineWidth = width;
         context.strokeStyle = parseColor(color);
         if (Array.isArray(dashArray)) {
-          dashArray = dashArray.filter(v => (typeof v === 'number'));
+          dashArray = dashArray.filter((v) => (typeof v === 'number'));
           if (dashArray.length > 0) {
             context.setLineDash(dashArray);
             if (typeof dashOffset === 'number') {
