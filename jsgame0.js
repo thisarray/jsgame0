@@ -955,9 +955,19 @@ const music = (function () {
     },
 
     /*
-     * Does nothing. Only exists to match the interface.
+     * Fade out and eventually stop the current music playback over duration seconds.
      */
-    fadeout() {
+    fadeout(duration) {
+      if (typeof duration !== 'number') {
+        throw new TypeError('duration must be a positive number in seconds.');
+      }
+      if (duration <= 0) {
+        throw new RangeError('duration must be a positive number in seconds.');
+      }
+
+      if (current != null) {
+        animate(current, duration, {volume: 0}, 'linear', () => music.stop());
+      }
     },
 
     /*
