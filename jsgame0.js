@@ -845,9 +845,10 @@ const music = (function () {
         return;
       }
       current = TRACK_MAP.get(name);
-      current.volume = volume;
-      current.loop = loop;
       current.currentTime = 0;
+      current.loop = loop;
+      current.muted = false;
+      current.volume = volume;
       current.play();
       paused = false;
       stopped = false;
@@ -897,6 +898,9 @@ const music = (function () {
     set_pos(pos) {
       if (typeof pos !== 'number') {
         throw new TypeError('pos must be a number between 0 and the duration of the track.');
+      }
+      if (pos < 0) {
+        throw new RangeError('pos must be a number between 0 and the duration of the track.');
       }
       if (current != null) {
         current.currentTime = Math.max(0, Math.min(pos, current.duration));
@@ -1588,7 +1592,7 @@ Rect.prototype.toString = function () {
  *
  * In addition, the name of the image is stored in the "name" attribute and not
  * the "image" attribute.
- * "image" is too confusing when there are actual image Surfaces, too.
+ * "image" is too confusing when image Surface objects exist, too.
  */
 class Actor {
   constructor(name) {
@@ -2015,16 +2019,14 @@ class Actor {
    * Return the angle from this actor's position to target, in degrees.
    */
   angle_to(target) {
-    let vector = this._vector_to(target);
-    return vector[1];
+    return this._vector_to(target)[1];
   }
 
   /*
    * Return the distance from this actor's position to target, in pixels.
    */
   distance_to(target) {
-    let vector = this._vector_to(target);
-    return vector[0];
+    return this._vector_to(target)[0];
   }
 
   /*
@@ -2373,7 +2375,7 @@ const screen = (function () {
   }
 
   /*
-   * Parse a color given as a String or an Array of Numbers.
+   * Return a parsed color given as a String or an Array of Numbers.
    */
   function parseColor(color) {
     if (typeof color === 'string') {
@@ -3231,7 +3233,7 @@ const screen = (function () {
  */
 
 /*
- * A JavaScript wrapper around the Gamepad API based on pygame.joystick.
+ * Wrapper around the Gamepad API based on pygame.joystick.
  *
  * It only supports axes and buttons.
  */
@@ -3444,7 +3446,7 @@ class Joystick {
 }
 
 /*
- * A JavaScript wrapper around an ImageData object
+ * Wrapper around an ImageData object
  * to support scripts that rely on pixel manipulation.
  *
  * There is no pixel array or screen buffer to which you can write in
@@ -3459,7 +3461,7 @@ class Joystick {
  */
 class Surface {
   /*
-   * Pad a copy of the Array color to 4 elements.
+   * Return a padded copy of the Array color to 4 elements.
    */
   static _padColorArray(color) {
     let result = color.slice(0, 4);
