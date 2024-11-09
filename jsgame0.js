@@ -832,7 +832,7 @@ const music = (function () {
 
   return {
     _load(loaderElement) {
-      for (let e of Array.from(loaderElement.querySelectorAll('audio'))) {
+      for (let e of loaderElement.querySelectorAll('audio')) {
         TRACK_MAP.set(e.dataset.name.trim(), e);
         e.addEventListener('ended', deejay);
       }
@@ -3055,7 +3055,7 @@ const screen = (function () {
           name;
       if (element != null) {
         // Populate the images global object
-        for (let e of Array.from(element.querySelectorAll('img'))) {
+        for (let e of element.querySelectorAll('img')) {
           name = e.dataset.name.trim();
           images[name] = e;
         }
@@ -3064,7 +3064,7 @@ const screen = (function () {
       // Populate the sounds global object
       element = document.querySelector(to_CSS_ID(soundsID));
       if (element != null) {
-        for (let e of Array.from(element.querySelectorAll('audio'))) {
+        for (let e of element.querySelectorAll('audio')) {
           name = e.dataset.name.trim();
           sounds[name] = e;
           e.addEventListener('play', soundStart);
@@ -3116,8 +3116,8 @@ const screen = (function () {
        *
        * This can be fooled but then you are just dooming yourself.
        */
-      for (const element of document.querySelectorAll('script')) {
-        if (element.textContent.includes('keyboard[')) {
+      for (let e of document.querySelectorAll('script')) {
+        if (e.textContent.includes('keyboard[')) {
           usesKeyboard = true;
           break;
         }
