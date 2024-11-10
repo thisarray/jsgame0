@@ -2568,6 +2568,140 @@ const screen = (function () {
     }
   }
 
+  /*
+   * Wrapper around an audio element to match the Pygame Zero interface.
+   */
+  class AudioWrapper {
+    constructor(audioElement) {
+      if (!(audioElement instanceof HTMLMediaElement)) {
+        throw new TypeError('audioElement must be a HTMLMediaElement.');
+      }
+
+      this.audioElement = audioElement;
+      this.audioElement.currentTime = 0;
+      this.audioElement.loop = false;
+      this.audioElement.muted = false;
+
+      this.loopCount = 0;
+      this.volume = 1;
+      this.audioElement.volume = this.volume;
+
+      this.audioElement.addEventListener('play', soundStart);
+      this.audioElement.addEventListener('ended', soundEnd);
+    }
+
+    /*
+     * Play the sound, but loop it loopCount number of times and fade in over duration seconds.
+     */
+    play(loopCount = 1, duration = 0) {
+      if (typeof loopCount !== 'number') {
+        loopCount = 1;
+      }
+      if (typeof duration !== 'number') {
+        throw new TypeError('duration must be a positive number in seconds.');
+      }
+      if (duration < 0) {
+        throw new RangeError('duration must be a positive number in seconds.');
+      }
+
+      if (loopCount < 0) {
+        this.audioElement.loop = true;
+        // Set this.loopCount to 1 so it will be 0 after decrementing
+        this.loopCount = 1;
+      }
+      else {
+        this.loopCount += loopCount;
+      }
+      this.loopCount--;
+      if (this.loopCount < 0) {
+        // Backstop this.loopCount at 0 for our sanity
+        this.loopCount = 0;
+        return;
+      }
+
+      if (duration > 0) {
+        // Fade in the audio element over duration seconds
+        this.audioElement.volume = 0;
+        animate(this.audioElement, duration, {volume: this.volume}, 'linear');
+      }
+      else {
+        this.audioElement.volume = this.volume;
+      }
+
+      this.audioElement.play();
+    }
+
+    /*
+     * Stop playing the sound.
+     */
+    stop() {
+      this.audioElement.loop = false;
+      this.loopCount = 0;
+      this.audioElement.currentTime = this.get_length();
+    }
+
+    /*
+     * Return the duration of the sound in seconds.
+     */
+    get_length() {
+      return this.audioElement.duration;
+    }
+
+    /*
+     * Pause the sound.
+     */
+    pause() {
+      this.audioElement.pause();
+    }
+
+    /*
+     * Unpause the sound if it was paused.
+     */
+    unpause() {
+      if (this.audioElement.paused) {
+        this.audioElement.play();
+      }
+    }
+
+    /*
+     * Fade out and eventually stop the sound over duration seconds.
+     */
+    fadeout(duration) {
+      if (typeof duration !== 'number') {
+        throw new TypeError('duration must be a positive number in seconds.');
+      }
+      if (duration <= 0) {
+        throw new RangeError('duration must be a positive number in seconds.');
+      }
+
+      this.audioElement.loop = false;
+      this.loopCount = 0;
+      animate(this.audioElement, duration, {volume: 0}, 'linear', () => this.stop());
+    }
+
+    _play_again() {
+      return (this.loopCount > 0);
+    }
+
+    /*
+     * Return the audio volume between 0 (meaning silent) and 1 (meaning full volume).
+     */
+    get_volume() {
+      return this.volume;
+    }
+
+    /*
+     * Set the audio volume between 0 (meaning silent) and 1 (meaning full volume).
+     */
+    set_volume(v) {
+      if (typeof v !== 'number') {
+        throw new TypeError('volume must be a number between 0 (meaning silent) and 1 (meaning full volume).');
+      }
+      this.volume = Math.max(0, Math.min(v, 1));
+      this.audioElement.volume = this.volume;
+    }
+  }
+
   return {
     draw: {
       line(start, end, color, width = 1, dashArray = null, dashOffset = 0) {
