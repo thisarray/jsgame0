@@ -2465,8 +2465,7 @@ const screen = (function () {
         clock._clearQueue();
         Inbetweener._clearQueue();
         for (const n of Object.getOwnPropertyNames(sounds)) {
-          sounds[n].loop = false;
-          sounds[n].currentTime = sounds[n].duration;
+          sounds[n].stop();
         }
         playingSet.clear();
         music.stop();
@@ -2532,7 +2531,11 @@ const screen = (function () {
   }
 
   function soundEnd(event) {
-    playingSet.delete(event.target.dataset.name.trim());
+    let name = event.target.dataset.name.trim();
+    playingSet.delete(name);
+    if (sounds[name]._play_again()) {
+      sounds[name].play(0);
+    }
   }
 
   /*
@@ -3200,9 +3203,7 @@ const screen = (function () {
       if (element != null) {
         for (let e of element.querySelectorAll('audio')) {
           name = e.dataset.name.trim();
-          sounds[name] = e;
-          e.addEventListener('play', soundStart);
-          e.addEventListener('ended', soundEnd);
+          sounds[name] = new AudioWrapper(e);
         }
       }
 
@@ -3299,8 +3300,7 @@ const screen = (function () {
 
       // Unpause any sounds that were previously playing
       for (const n of playingSet) {
-        // HTMLMediaElement only has play() and pause() methods
-        sounds[n].play();
+        sounds[n].unpause();
       }
       music.unpause();
 
