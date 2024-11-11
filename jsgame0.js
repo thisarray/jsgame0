@@ -2430,13 +2430,6 @@ const screen = (function () {
       hasKeyUp = false,
       hasDraw = false,
       hasUpdate = false,
-      /*
-       * Set of string names of currently playing sounds.
-       *
-       * Tracked here because Object.getOwnPropertyNames(sounds)
-       * returns the names of all sounds.
-       */
-      playingSet = new Set(),
       running = 0,
       start;
 
@@ -2467,7 +2460,7 @@ const screen = (function () {
         for (const n of Object.getOwnPropertyNames(sounds)) {
           sounds[n].stop();
         }
-        playingSet.clear();
+        AudioWrapper.inFlight.clear();
         music.stop();
         if (pauseButton != null) {
           pauseButton.textContent = 'Pause';
@@ -2526,18 +2519,6 @@ const screen = (function () {
     window.on_mouse_move([x, y], [event.movementX, event.movementY], event.buttons);
   }
 
-  function soundStart(event) {
-    playingSet.add(event.target.dataset.name.trim());
-  }
-
-  function soundEnd(event) {
-    let name = event.target.dataset.name.trim();
-    playingSet.delete(name);
-    if (sounds[name]._play_again()) {
-      sounds[name].play(0);
-    }
-  }
-
   /*
    * The core game loop
    */
@@ -2575,6 +2556,27 @@ const screen = (function () {
    * Wrapper around an audio element to match the Pygame Zero interface.
    */
   class AudioWrapper {
+    /*
+     * Set of string names of currently playing sounds.
+     *
+     * Tracked here because Object.getOwnPropertyNames(sounds)
+     * returns the names of all sounds.
+     */
+    static inFlight = new Set();
+
+    static _soundStart(event) {
+      AudioWrapper.inFlight.add(event.target.dataset.name.trim());
+    }
+
+    static _soundEnd(event) {
+      let name = event.target.dataset.name.trim();
+      AudioWrapper.inFlight.delete(name);
+      if (sounds[name]._play_again()) {
+        sounds[name].play(0);
+      }
+    }
+
+
     constructor(audioElement) {
       if (!(audioElement instanceof HTMLMediaElement)) {
         throw new TypeError('audioElement must be a HTMLMediaElement.');
@@ -2589,8 +2591,8 @@ const screen = (function () {
       this.volume = 1;
       this.audioElement.volume = this.volume;
 
-      this.audioElement.addEventListener('play', soundStart);
-      this.audioElement.addEventListener('ended', soundEnd);
+      this.audioElement.addEventListener('play', AudioWrapper._soundStart);
+      this.audioElement.addEventListener('ended', AudioWrapper._soundEnd);
     }
 
     /*
@@ -2613,6 +2615,7 @@ const screen = (function () {
         this.loopCount = 1;
       }
       else {
+        this.audioElement.loop = false;
         this.loopCount += loopCount;
       }
       this.loopCount--;
@@ -3299,7 +3302,7 @@ const screen = (function () {
       }
 
       // Unpause any sounds that were previously playing
-      for (const n of playingSet) {
+      for (const n of AudioWrapper.inFlight) {
         sounds[n].unpause();
       }
       music.unpause();
@@ -3322,7 +3325,7 @@ const screen = (function () {
       running = 0;
 
       // Pause any sounds that are currently playing
-      for (const n of playingSet) {
+      for (const n of AudioWrapper.inFlight) {
         sounds[n].pause();
       }
       music.pause();
