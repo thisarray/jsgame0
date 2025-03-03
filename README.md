@@ -24,9 +24,11 @@ The game runs in the browser using the [Canvas API](https://developer.mozilla.or
   In particular, Actor instances **MUST BE** created in the reset() function because the browser may not have loaded their images yet.
   reset() is called after the browser has retrieved all the resources.
 
-- images, sounds, and music map to the underlying [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement).
-  I did not write wrappers for them because for simple operations HTMLMediaElement works the way you expect.
-  For more complex operations, wrappers get in the way.
+- images map to [HTMLImageElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement).
+  Unlike Pygame Zero, width and height are attributes and not methods.
+
+- sounds and music use [HTMLMediaElement](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement) under the hood,
+  but wrap it to provide the same interface as Pygame Zero.
 
 - There is no storage because the
   [localStorage object](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API) serves the same purpose.
