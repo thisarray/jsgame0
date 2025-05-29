@@ -916,11 +916,14 @@ const music = (function () {
      */
     stop() {
       if (!stopped) {
-        next = null;
         if (current != null) {
           current.loop = false;
           current.currentTime = current.duration;
         }
+        current = null;
+        // Also, if the current track is ever stopped or changed,
+        // the queued track will be lost.
+        next = null;
         paused = false;
         stopped = true;
       }
