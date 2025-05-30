@@ -1022,7 +1022,7 @@ const tone = (function () {
   let context = null;
 
   /*
-   * Lazily build the map and create the AudioContext as needed.
+   * Lazily create the AudioContext and build NOTE_MAP as needed.
    */
   function populateNotes() {
     if (context == null) {
@@ -2591,6 +2591,9 @@ const screen = (function () {
       this.audioElement.muted = false;
 
       this.loopCount = 0;
+      // Own copy of paused for when paused because
+      // this.audioElement.paused is true when stopped as well
+      this.paused = false;
       this.volume = 1;
       this.audioElement.volume = this.volume;
 
@@ -2612,6 +2615,7 @@ const screen = (function () {
         throw new RangeError('duration must be a positive number in seconds.');
       }
 
+      this.paused = false;
       if (loopCount < 0) {
         this.audioElement.loop = true;
         // Set this.loopCount to 1 so it will be 0 after decrementing
@@ -2646,6 +2650,7 @@ const screen = (function () {
     stop() {
       this.audioElement.loop = false;
       this.loopCount = 0;
+      this.paused = false;
       this.audioElement.currentTime = this.get_length();
     }
 
@@ -2660,15 +2665,19 @@ const screen = (function () {
      * Pause the sound.
      */
     pause() {
-      this.audioElement.pause();
+      if (!this.paused) {
+        this.audioElement.pause();
+        this.paused = true;
+      }
     }
 
     /*
      * Unpause the sound if it was paused.
      */
     unpause() {
-      if (this.audioElement.paused) {
+      if (this.paused) {
         this.audioElement.play();
+        this.paused = false;
       }
     }
 
@@ -2689,7 +2698,7 @@ const screen = (function () {
     }
 
     _play_again() {
-      return (this.loopCount > 0);
+      return ((!this.paused) && (this.loopCount > 0));
     }
 
     /*
