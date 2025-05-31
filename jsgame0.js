@@ -812,7 +812,6 @@ const music = (function () {
       hasMusicHook = false,
       next = null,
       paused = false,
-      stopped = true,
       volume = 1;
 
   /*
@@ -851,7 +850,6 @@ const music = (function () {
       current.volume = volume;
       current.play();
       paused = false;
-      stopped = false;
     },
 
     /*
@@ -915,18 +913,15 @@ const music = (function () {
      * Stop the music.
      */
     stop() {
-      if (!stopped) {
-        if (current != null) {
-          current.loop = false;
-          current.currentTime = current.duration;
-        }
-        current = null;
-        // Also, if the current track is ever stopped or changed,
-        // the queued track will be lost.
-        next = null;
-        paused = false;
-        stopped = true;
+      if (current != null) {
+        current.loop = false;
+        current.currentTime = current.duration;
       }
+      current = null;
+      // Also, if the current track is ever stopped or changed,
+      // the queued track will be lost.
+      next = null;
+      paused = false;
     },
 
     /*
@@ -958,7 +953,7 @@ const music = (function () {
      * False otherwise.
      */
     is_playing() {
-      return ((!paused) && (!stopped));
+      return ((current != null) && (!paused));
     },
 
     /*
