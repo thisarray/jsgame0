@@ -967,7 +967,8 @@ const music = (function () {
         throw new RangeError('duration must be a positive number in seconds.');
       }
 
-      if (current != null) {
+      if (music.is_playing()) {
+        current.loop = false;
         animate(current, duration, {volume: 0}, 'linear', () => music.stop());
       }
     },
@@ -2685,6 +2686,9 @@ const screen = (function () {
       }
       if (duration <= 0) {
         throw new RangeError('duration must be a positive number in seconds.');
+      }
+      if (this.paused) {
+        return;
       }
 
       this.audioElement.loop = false;
