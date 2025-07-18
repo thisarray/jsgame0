@@ -1466,11 +1466,11 @@ class Rect {
   }
   normalize() {
     if (this.width < 0) {
-      this.x = this.x + this.width;
+      this.x += this.width;
       this.width = Math.abs(this.width);
     }
     if (this.height < 0) {
-      this.y = this.y + this.height;
+      this.y += this.height;
       this.height = Math.abs(this.height);
     }
   }
